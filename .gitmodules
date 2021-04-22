@@ -1,0 +1,6 @@
+[submodule "esp-idf"]
+	path = esp-idf
+	url = git@github.com:espressif/esp-idf.git
+[submodule "ESP8266_RTOS_SDK"]
+	path = ESP8266_RTOS_SDK
+	url = git@github.com:espressif/ESP8266_RTOS_SDK.git
