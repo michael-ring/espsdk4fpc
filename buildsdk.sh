@@ -12,7 +12,11 @@ HOSTISLINUXI686=
 IDFGCCx86_64_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux64-amd64.tar.gz
 IDFGCCx86_64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
 IDFGCCaarch64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+RTOSGCCx86_64_linux=xtensa-lx106-elf-linux64-1.22.0-100-ge567ec7-5.2.0.tar.gz
+RTOSGCCx86_64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
+RTOSGCCaarch64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
 IDFGCC=
+RTOSGCC=
 
 BUILDDIR=$(pwd)
 if [ "$(uname -s)" = "Darwin" ]; then
@@ -20,16 +24,20 @@ if [ "$(uname -s)" = "Darwin" ]; then
   [ "$(uname -m)" = "x86_64" ] && HOSTISDARWINX86_64=TRUE
   [ "$(uname -m)" = "x86_64" ] && ARCHDIR=x86_64-darwin
   [ "$(uname -m)" = "x86_64" ] && IDFGCC=$IDFGCCx86_64_darwin
+  [ "$(uname -m)" = "x86_64" ] && RTOSGCC=$RTOSGCCx86_64_darwin
 
   [ "$(uname -m)" = "arm64" ]  && HOSTISDARWINARM64=TRUE
   [ "$(uname -m)" = "arm64" ]  && ARCHDIR=aarch64-darwin
   [ "$(uname -m)" = "arm64" ]  && IDFGCC=$IDFGCCx86_64_darwin
+  [ "$(uname -m)" = "arm64" ]  && RTOSGCC=$RTOSGCCx86_64_darwin
 fi
 
 if [ "$(uname -s)" = "Linux" -a "$CC" != "/usr/src/mxe/usr/bin/x86_64-w64-mingw32.static-gcc" ]; then
   HOSTISLINUX=TRUE
   [ "$(uname -m)" = "x86_64" ] && HOSTISLINUXX86_64=TRUE
   [ "$(uname -m)" = "x86_64" ] && IDFGCC=$IDFGCCx86_64_linux
+  [ "$(uname -m)" = "x86_64" ] && RTOSGCC=$RTOSGCCx86_64_linux
+
   [ "$(uname -m)" = "i686"   ] && HOSTISLINUXI686=TRUE
   ARCHDIR="$(uname -m)-linux"
 fi
@@ -63,45 +71,155 @@ if [ -z "$IDFGCC" ]; then
   exit 1
 fi
 
+echo
+echo "Processing esp-idf"
+echo
+IDF_PATH=$BUILDDIR/esp-idf
+export IDF_PATH
+
+if [ ! -d $BUILDDIR/venv-idf ]; then
+  python3 -m venv $BUILDDIR/venv-idf
+fi
+. $BUILDDIR/venv-idf/bin/activate
+pip3 install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | pv --line-mode --size=33 --name "install pydeps" >/dev/null
+pip3 install pyinstaller  2>&1 | pv --line-mode --size=5 --name "install pyinst" >/dev/null
+
 OUTPUTDIR=$BUILDDIR/$ARCHDIR
 [ -d $OUTPUTDIR ] && rm -rf $OUTPUTDIR
 mkdir -p $OUTPUTDIR
 mkdir $OUTPUTDIR/bin
-mkdir $OUTPUTDIR/lib
+mkdir $OUTPUTDIR/lx6
 
 [ -d $BUILDDIR/tmp ] && rm -rf $BUILDDIR/tmp
 mkdir $BUILDDIR/tmp
 cd $BUILDDIR/tmp
-tar zxf $BUILDDIR/$IDFGCC
+tar zxvf $BUILDDIR/$IDFGCC 2>&1 | pv --line-mode --size=1867 --name "extract gcc   " >/dev/null
 cp xtensa-esp32-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-esp32-elf/libexec $OUTPUTDIR/
-cp -r xtensa-esp32-elf/xtensa-esp32-elf/lib/* $OUTPUTDIR/lib/
-cp -r xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/*/* $OUTPUTDIR/lib/
-rm -rf $OUTPUTDIR/lib/include
-rm -rf $OUTPUTDIR/lib/include-fixed
-rm -rf $OUTPUTDIR/lib/install-tools
-rm -rf $OUTPUTDIR/lib/plugin
+cp -r xtensa-esp32-elf/xtensa-esp32-elf/lib/* $OUTPUTDIR/lx6/
+cp -r xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/*/* $OUTPUTDIR/lx6/
+rm -rf $OUTPUTDIR/lx6/include
+rm -rf $OUTPUTDIR/lx6/include-fixed
+rm -rf $OUTPUTDIR/lx6/install-tools
+rm -rf $OUTPUTDIR/lx6/plugin
 
-cp -r $BUILDDIR/esp-idf/components/xtensa/esp32   $OUTPUTDIR/lib/
-cp -r $BUILDDIR/esp-idf/components/xtensa/esp32s3 $OUTPUTDIR/lib/ 
-cp -r $BUILDDIR/esp-idf/components/xtensa/esp32s2 $OUTPUTDIR/lib/
-cp -r $BUILDDIR/esp-idf/components/bt/controller/lib/esp32c3 $OUTPUTDIR/lib/
-cp -r $BUILDDIR/esp-idf/components/bt/controller/lib/esp32 $OUTPUTDIR/lib/
-cp -r $BUILDDIR/esp-idf/components/bt/controller/lib/esp32s3 $OUTPUTDIR/lib/
-cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32c3 $OUTPUTDIR/lib/
-cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32 $OUTPUTDIR/lib/
-cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32s3 $OUTPUTDIR/lib/
-cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32s2 $OUTPUTDIR/lib/
+cp -r $BUILDDIR/esp-idf/components/xtensa/esp32   $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/xtensa/esp32s3 $OUTPUTDIR/lx6/ 
+cp -r $BUILDDIR/esp-idf/components/xtensa/esp32s2 $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/bt/controller/lib/esp32c3 $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/bt/controller/lib/esp32 $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/bt/controller/lib/esp32s3 $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32c3 $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32 $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32s3 $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32s2 $OUTPUTDIR/lx6/
 
+OLDPATH=$PATH
 PATH=$BUILDDIR/tmp/xtensa-esp32-elf/bin:$PATH
+export PATH
 cd $BUILDDIR/esp-idf/examples/get-started/hello_world
 cp $BUILDDIR/sdkconfig-idf4.1-esp32.release sdkconfig
-make clean #2>/dev/null | pv -p -s 100 --name make clean
-make #2>/dev/null | pv -p -s 100 --name make
-find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lib/ \;
+make clean 2>&1 | pv --line-mode --size=103  --name "make clean    " >/dev/null
+make -j 8 2>&1  | pv --line-mode --size=1070 --name "make release  " >/dev/null
+find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
 cp $BUILDDIR/sdkconfig-idf4.1-esp32.debug sdkconfig
-make clean #2>/dev/null | pv -p -s 100 --name make clean
-make #2>/dev/null | pv -p -s 100 --name make
-mkdir $OUTPUTDIR/lib/debug
-find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lib/debug \;
-make clean #2>/dev/null | pv -p -s 100 --name make clean
+make clean 2>&1 | pv --line-mode --size=106  --name "make clean    " >/dev/null
+make -j 8 2>&1  | pv --line-mode --size=1070 --name "make debug    " >/dev/null
+mkdir $OUTPUTDIR/lx6/debug
+find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/debug \;
+make clean 2>&1 | pv --line-mode --size=100 --name "make clean     " >/dev/null
+
+mkdir -p $OUTPUTDIR/esp-idf-4.1.1/components
+cd $BUILDDIR/esp-idf/components
+find . -type f -name "[kK]config*" | while read file ; do
+  mkdir -p  $OUTPUTDIR/esp-idf-4.1.1/components/$(dirname $file)
+  cp $file $OUTPUTDIR/esp-idf-4.1.1/components/$file
+done
+find . -type f -name "*.lf" | while read file ; do
+  mkdir -p  $OUTPUTDIR/esp-idf-4.1.1/components/$(dirname $file) 2>/dev/null
+  cp $file $OUTPUTDIR/esp-idf-4.1.1/components/$file
+done
+cd $BUILDDIR/esp-idf/components/esptool_py/esptool
+mkdir -p $OUTPUTDIR/esp-idf-4.1.1/components/esptool_py/esptool 2>/dev/null
+pyinstaller --noconfirm esptool.py  2>&1 | pv --line-mode --size=63 --name "build esptool " >/dev/null
+cp -r $BUILDDIR/esp-idf/components/esptool_py/esptool/dist/esptool/ $OUTPUTDIR/esp-idf-4.1.1/components/esptool_py/esptool/
+mv $OUTPUTDIR/esp-idf-4.1.1/components/esptool_py/esptool/esptool $OUTPUTDIR/esp-idf-4.1.1/components/esptool_py/esptool/esptool.py
+cd $BUILDDIR/esp-idf/components/esptool_py/esptool/
+rm -rf dist build __pycache__ esptool.spec dist
+
+cd $BUILDDIR/esp-idf/tools/ldgen   
+mkdir -p $OUTPUTDIR/esp-idf-4.1.1/tools/ldgen 2>/dev/null
+pyinstaller --noconfirm ldgen.py  2>&1 | pv --line-mode --size=58 --name "build ldgen     " >/dev/null
+cp -r $BUILDDIR/esp-idf/tools/ldgen/dist/ldgen/ $OUTPUTDIR/esp-idf-4.1.1/tools/ldgen/
+mv $OUTPUTDIR/esp-idf-4.1.1/tools/ldgen/ldgen $OUTPUTDIR/esp-idf-4.1.1/tools/ldgen/ldgen.py
+cd $BUILDDIR/esp-idf/tools/ldgen
+rm -rf dist build __pycache__ ldgen.spec dist
+
+echo
+echo "Processing esp8266-rtos"
+echo
+
+IDF_PATH=$BUILDDIR/ESP8266_RTOS_SDK
+export IDF_PATH
+
+if [ ! -d $BUILDDIR/venv-rtos ]; then
+  python3 -m venv $BUILDDIR/venv-rtos
+fi
+. $BUILDDIR/venv-rtos/bin/activate
+pip3 install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | pv --line-mode --size=9 --name "install pydeps" >/dev/null
+pip3 install pyinstaller  2>&1 | pv --line-mode --size=5 --name "install pyinst" >/dev/null
+
+mkdir $OUTPUTDIR/lx106
+
+[ -d $BUILDDIR/tmp ] && rm -rf $BUILDDIR/tmp
+mkdir $BUILDDIR/tmp
+cd $BUILDDIR/tmp
+tar zxvf $BUILDDIR/$RTOSGCC 2>&1 | pv --line-mode --size=1550 --name "extract gcc   " >/dev/null
+cp xtensa-lx106-elf/bin/* $OUTPUTDIR/bin/
+cp -r xtensa-lx106-elf/libexec $OUTPUTDIR/
+cp -r xtensa-lx106-elf/xtensa-lx106-elf/sysroot/lib/* $OUTPUTDIR/lx106/
+
+cp  $BUILDDIR/ESP8266_RTOS_SDK/components/esp8266/lib/*.a     $OUTPUTDIR/lx106/
+cp  $BUILDDIR/ESP8266_RTOS_SDK/components/esp-wolfssl/wolfssl/lib/*.a $OUTPUTDIR/lx106/
+
+
+PATH=$BUILDDIR/tmp/xtensa-lx106-elf/bin:$PATH
+cd $BUILDDIR/ESP8266_RTOS_SDK/examples/get-started/hello_world
+cp $BUILDDIR/sdkconfig-rtos3.3-lx106.release sdkconfig
+make clean 2>&1 | pv --line-mode --size=66  --name "make clean    " >/dev/null
+make -j 8  2>&1 | pv --line-mode --size=611 --name "make release  " >/dev/null
+find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/ \;
+cp $BUILDDIR/sdkconfig-rtos3.3-lx106.debug sdkconfig
+make clean 2>&1 | pv --line-mode --size=71  --name "make clean    " >/dev/null
+make -j 8  2>&1 | pv --line-mode --size=611 --name "make debug    " >/dev/null
+mkdir $OUTPUTDIR/lx106/debug
+find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/debug \;
+make clean 2>&1 | pv --line-mode --size=71  --name "make clean    " >/dev/null
+
+mkdir -p $OUTPUTDIR/esp-rtos-3.3/components
+cd $BUILDDIR/ESP8266_RTOS_SDK/components
+find . -type f -name "[kK]config*" | while read file ; do
+  mkdir -p  $OUTPUTDIR/esp-rtos-3.3/components/$(dirname $file)
+  cp $file $OUTPUTDIR/esp-rtos-3.3/components/$file
+done
+find . -type f -name "*.lf" | while read file ; do
+  mkdir -p  $OUTPUTDIR/esp-rtos-3.3/components/$(dirname $file) 2>/dev/null
+  cp $file $OUTPUTDIR/esp-rtos-3.3/components/$file
+done
+cd $BUILDDIR/ESP8266_RTOS_SDK/components/esptool_py/esptool
+mkdir -p $OUTPUTDIR/esp-rtos-3.3/components/esptool_py/esptool 2>/dev/null
+pyinstaller --noconfirm esptool.py  2>&1 | pv --line-mode --size=63 --name "build esptool " >/dev/null
+cp -r $BUILDDIR/ESP8266_RTOS_SDK/components/esptool_py/esptool/dist/esptool/ $OUTPUTDIR/esp-rtos-3.3/components/esptool_py/esptool/
+mv $OUTPUTDIR/esp-rtos-3.3/components/esptool_py/esptool/esptool $OUTPUTDIR/esp-rtos-3.3/components/esptool_py/esptool/esptool.py
+cd $BUILDDIR/ESP8266_RTOS_SDK/components/esptool_py/esptool/
+rm -rf dist build __pycache__ esptool.spec dist
+
+cd $BUILDDIR/ESP8266_RTOS_SDK/tools/ldgen   
+mkdir -p $OUTPUTDIR/esp-rtos-3.3/tools/ldgen 2>/dev/null
+pyinstaller --noconfirm ldgen.py  2>&1 | pv --line-mode --size=58 --name "build ldgen     " >/dev/null
+cp -r $BUILDDIR/ESP8266_RTOS_SDK/tools/ldgen/dist/ldgen/ $OUTPUTDIR/esp-rtos-3.3/tools/ldgen/
+mv $OUTPUTDIR/esp-rtos-3.3/tools/ldgen/ldgen $OUTPUTDIR/esp-rtos-3.3/tools/ldgen/ldgen.py
+cd $BUILDDIR/ESP8266_RTOS_SDK/tools/ldgen
+rm -rf dist build __pycache__ ldgen.spec dist
+
+
