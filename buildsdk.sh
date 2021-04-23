@@ -14,13 +14,14 @@ HOSTISDARWINARM64=
 HOSTISLINUXX86_64=
 HOSTISLINUXI686=
 
-IDFGCCi686_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz
-IDFGCCx86_64_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
-IDFGCCx86_64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
-IDFGCCaarch64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
-RTOSGCCi686_linux=xtensa-lx106-elf-linux-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCx86_64_linux=xtensa-lx106-elf-linux64-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCx86_64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
+IDFGCCi686_linux=     xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz
+IDFGCCx86_64_linux=   xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
+IDFGCCx86_64_darwin=  xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+IDFGCCaarch64_darwin= xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+
+RTOSGCCi686_linux=    xtensa-lx106-elf-linux32-1.22.0-100-ge567ec7-5.2.0.tar.gz
+RTOSGCCx86_64_linux=  xtensa-lx106-elf-linux64-1.22.0-100-ge567ec7-5.2.0.tar.gz
+RTOSGCCx86_64_darwin= xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
 RTOSGCCaarch64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
 IDFGCC=
 RTOSGCC=
@@ -236,6 +237,6 @@ echo "Zipping Results..."
 cd  $OUTPUTDIR/
 rm -f ../esplibs-$ARCHDIR.zip 2>/dev/null
 rm -f ../xtensa-binutils-$ARCHDIR.zip 2>/dev/null
-zip -r -q ../esplibs-$ARCHDIR.zip lx6 lx106
+zip -r -q ../xtensa-libs-$ARCHDIR.zip lx6 lx106
 zip -r -q ../xtensa-binutils-$ARCHDIR.zip bin esp-idf-$IDFVER esp-rtos-$RTOSVER libexec
 
