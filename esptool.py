@@ -1,8 +1,7 @@
 #!/bin/sh
 IDF_PATH=$(dirname $(dirname $(dirname $(dirname $0))))
 export IDF_PATH
-echo "IDF_PATH is $IDF_PATH"
-echo esptool.py $*
+echo "(1023) IDF_PATH is $IDF_PATH"
 ACTIVATE=$IDF_PATH/venv/bin/activate
 if [ ! -f $ACTIVATE ]; then
   python3 -m venv $IDF_PATH/venv
@@ -17,4 +16,4 @@ if [ -z "$(python3 -m pip list | grep pyserial )" ]; then
   python3 -m pip install -r $IDF_PATH/requirements.txt
 fi
 export PATH=$IDF_PATH/tools:$PATH
-python3 $IDF_PATH/components/esptool_py/esptool/esptool-orig.py $*
+python3 $IDF_PATH/components/esptool_py/esptool/esptool-orig.py "$@"
