@@ -139,6 +139,8 @@ cp $BUILDDIR/sdkconfig-idf4.1-esp32.release sdkconfig
 make clean 2>&1 | pv --line-mode --size=85  --name "make clean    " >/dev/null
 make -j 8 2>&1  | pv --line-mode --size=937 --name "make release  " >/dev/null
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
+cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6
+cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
 cp $BUILDDIR/sdkconfig-idf4.1-esp32.debug sdkconfig
 make clean 2>&1 | pv --line-mode --size=88  --name "make clean    " >/dev/null
 make -j 8 2>&1  | pv --line-mode --size=937 --name "make debug    " >/dev/null
@@ -151,6 +153,8 @@ rm -rf $OUTPUTDIR/lx6/include
 rm -rf $OUTPUTDIR/lx6/include-fixed
 rm -rf $OUTPUTDIR/lx6/install-tools
 rm -rf $OUTPUTDIR/lx6/plugin
+find $OUTPUTDIR/lx6 -name "*.a" -exec chmod 644 {} \;
+find $OUTPUTDIR/lx6 -name "*.o" -exec chmod 644 {} \;
 
 echo
 echo "Processing esp8266-rtos"
@@ -208,11 +212,24 @@ cp $BUILDDIR/sdkconfig-rtos$RTOSVER-lx106.release sdkconfig
 make clean 2>&1 | pv --line-mode --size=57  --name "make clean    " >/dev/null
 make -j 8  2>&1 | pv --line-mode --size=525 --name "make release  " >/dev/null
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/ \;
+cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx106
+cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx106
 cp $BUILDDIR/sdkconfig-rtos$RTOSVER-lx106.debug sdkconfig
 make clean 2>&1 | pv --line-mode --size=60  --name "make clean    " >/dev/null
 make -j 8  2>&1 | pv --line-mode --size=525 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx106/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/debug \;
-make clean 2>&1 | pv --line-mode --size=59  --name "make clean    " >/dev/null
+#make clean 2>&1 | pv --line-mode --size=59  --name "make clean    " >/dev/null
 
 #cleanup
+find $OUTPUTDIR/lx106 -name "*.a" -exec chmod 644 {} \;
+find $OUTPUTDIR/lx106 -name "*.o" -exec chmod 644 {} \;
+
+echo
+echo "Zipping Results..."
+cd  $OUTPUTDIR/
+rm -f ../esplibs-$ARCHDIR.zip 2>/dev/null
+rm -f ../xtensa-binutils-$ARCHDIR.zip 2>/dev/null
+zip -r -q ../esplibs-$ARCHDIR.zip lx6 lx106
+zip -r -q ../xtensa-binutils-$ARCHDIR.zip bin esp-idf-$IDFVER esp-rtos-$RTOSVER libexec
+

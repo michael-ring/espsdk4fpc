@@ -50,7 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+.DS_Store
 *.tar.gz
+*.zip
 tmp/
 x86_64-darwin/
 aarch64-darwin/
