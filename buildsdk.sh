@@ -1,5 +1,10 @@
 #!/bin/sh
-git submodule update --init --recursive
+git submodule init --recursive
+cd esp-idf
+git checkout v4.1.1
+cd ..
+cd ESP8266_RTOS_SDK
+git checkout v3.3
 
 HOSTISWINDOWS=
 HOSTISLINUX=
@@ -82,7 +87,6 @@ if [ ! -d $BUILDDIR/venv-idf ]; then
 fi
 . $BUILDDIR/venv-idf/bin/activate
 pip3 install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | pv --line-mode --size=33 --name "install pydeps" >/dev/null
-pip3 install pyinstaller  2>&1 | pv --line-mode --size=5 --name "install pyinst" >/dev/null
 
 OUTPUTDIR=$BUILDDIR/$ARCHDIR
 [ -d $OUTPUTDIR ] && rm -rf $OUTPUTDIR
@@ -132,28 +136,23 @@ make clean 2>&1 | pv --line-mode --size=100 --name "make clean     " >/dev/null
 mkdir -p $OUTPUTDIR/esp-idf-4.1.1/components
 cd $BUILDDIR/esp-idf/components
 find . -type f -name "[kK]config*" | while read file ; do
-  mkdir -p  $OUTPUTDIR/esp-idf-4.1.1/components/$(dirname $file)
+  mkdir -p  $OUTPUTDIR/esp-idf-4.1.1/components/$(dirname $file) 2>/dev/null
   cp $file $OUTPUTDIR/esp-idf-4.1.1/components/$file
 done
 find . -type f -name "*.lf" | while read file ; do
   mkdir -p  $OUTPUTDIR/esp-idf-4.1.1/components/$(dirname $file) 2>/dev/null
   cp $file $OUTPUTDIR/esp-idf-4.1.1/components/$file
 done
+find . -type f -name "*.info" | while read file ; do
+  mkdir -p  $OUTPUTDIR/esp-idf-4.1.1/components/$(dirname $file) 2>/dev/null
+  cp $file $OUTPUTDIR/esp-idf-4.1.1/components/$file
+done
+cd $BUILDDIR/esp-idf/components/esptool_py/esptool
 cd $BUILDDIR/esp-idf/components/esptool_py/esptool
 mkdir -p $OUTPUTDIR/esp-idf-4.1.1/components/esptool_py/esptool 2>/dev/null
-pyinstaller --noconfirm esptool.py  2>&1 | pv --line-mode --size=63 --name "build esptool " >/dev/null
-cp -r $BUILDDIR/esp-idf/components/esptool_py/esptool/dist/esptool/ $OUTPUTDIR/esp-idf-4.1.1/components/esptool_py/esptool/
-mv $OUTPUTDIR/esp-idf-4.1.1/components/esptool_py/esptool/esptool $OUTPUTDIR/esp-idf-4.1.1/components/esptool_py/esptool/esptool.py
-cd $BUILDDIR/esp-idf/components/esptool_py/esptool/
-rm -rf dist build __pycache__ esptool.spec dist
 
 cd $BUILDDIR/esp-idf/tools/ldgen   
 mkdir -p $OUTPUTDIR/esp-idf-4.1.1/tools/ldgen 2>/dev/null
-pyinstaller --noconfirm ldgen.py  2>&1 | pv --line-mode --size=58 --name "build ldgen     " >/dev/null
-cp -r $BUILDDIR/esp-idf/tools/ldgen/dist/ldgen/ $OUTPUTDIR/esp-idf-4.1.1/tools/ldgen/
-mv $OUTPUTDIR/esp-idf-4.1.1/tools/ldgen/ldgen $OUTPUTDIR/esp-idf-4.1.1/tools/ldgen/ldgen.py
-cd $BUILDDIR/esp-idf/tools/ldgen
-rm -rf dist build __pycache__ ldgen.spec dist
 
 echo
 echo "Processing esp8266-rtos"
@@ -199,27 +198,21 @@ make clean 2>&1 | pv --line-mode --size=71  --name "make clean    " >/dev/null
 mkdir -p $OUTPUTDIR/esp-rtos-3.3/components
 cd $BUILDDIR/ESP8266_RTOS_SDK/components
 find . -type f -name "[kK]config*" | while read file ; do
-  mkdir -p  $OUTPUTDIR/esp-rtos-3.3/components/$(dirname $file)
+  mkdir -p  $OUTPUTDIR/esp-rtos-3.3/components/$(dirname $file) 2>/dev/null
   cp $file $OUTPUTDIR/esp-rtos-3.3/components/$file
 done
 find . -type f -name "*.lf" | while read file ; do
   mkdir -p  $OUTPUTDIR/esp-rtos-3.3/components/$(dirname $file) 2>/dev/null
   cp $file $OUTPUTDIR/esp-rtos-3.3/components/$file
 done
+find . -type f -name "*.info" | while read file ; do
+  mkdir -p  $OUTPUTDIR/esp-rtos-3.3/components/$(dirname $file) 2>/dev/null
+  cp $file $OUTPUTDIR/esp-rtos-3.3/components/$file
+done
+
 cd $BUILDDIR/ESP8266_RTOS_SDK/components/esptool_py/esptool
 mkdir -p $OUTPUTDIR/esp-rtos-3.3/components/esptool_py/esptool 2>/dev/null
-pyinstaller --noconfirm esptool.py  2>&1 | pv --line-mode --size=63 --name "build esptool " >/dev/null
-cp -r $BUILDDIR/ESP8266_RTOS_SDK/components/esptool_py/esptool/dist/esptool/ $OUTPUTDIR/esp-rtos-3.3/components/esptool_py/esptool/
-mv $OUTPUTDIR/esp-rtos-3.3/components/esptool_py/esptool/esptool $OUTPUTDIR/esp-rtos-3.3/components/esptool_py/esptool/esptool.py
-cd $BUILDDIR/ESP8266_RTOS_SDK/components/esptool_py/esptool/
-rm -rf dist build __pycache__ esptool.spec dist
 
 cd $BUILDDIR/ESP8266_RTOS_SDK/tools/ldgen   
 mkdir -p $OUTPUTDIR/esp-rtos-3.3/tools/ldgen 2>/dev/null
-pyinstaller --noconfirm ldgen.py  2>&1 | pv --line-mode --size=58 --name "build ldgen     " >/dev/null
-cp -r $BUILDDIR/ESP8266_RTOS_SDK/tools/ldgen/dist/ldgen/ $OUTPUTDIR/esp-rtos-3.3/tools/ldgen/
-mv $OUTPUTDIR/esp-rtos-3.3/tools/ldgen/ldgen $OUTPUTDIR/esp-rtos-3.3/tools/ldgen/ldgen.py
-cd $BUILDDIR/ESP8266_RTOS_SDK/tools/ldgen
-rm -rf dist build __pycache__ ldgen.spec dist
-
 
