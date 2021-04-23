@@ -14,9 +14,11 @@ HOSTISDARWINARM64=
 HOSTISLINUXX86_64=
 HOSTISLINUXI686=
 
-IDFGCCx86_64_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux64-amd64.tar.gz
+IDFGCCi686_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz
+IDFGCCx86_64_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
 IDFGCCx86_64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
 IDFGCCaarch64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+RTOSGCCi686_linux=xtensa-lx106-elf-linux-1.22.0-100-ge567ec7-5.2.0.tar.gz
 RTOSGCCx86_64_linux=xtensa-lx106-elf-linux64-1.22.0-100-ge567ec7-5.2.0.tar.gz
 RTOSGCCx86_64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
 RTOSGCCaarch64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
@@ -42,8 +44,11 @@ if [ "$(uname -s)" = "Linux" -a "$CC" != "/usr/src/mxe/usr/bin/x86_64-w64-mingw3
   [ "$(uname -m)" = "x86_64" ] && HOSTISLINUXX86_64=TRUE
   [ "$(uname -m)" = "x86_64" ] && IDFGCC=$IDFGCCx86_64_linux
   [ "$(uname -m)" = "x86_64" ] && RTOSGCC=$RTOSGCCx86_64_linux
+  sudo apt-get install -y pv python3 python3-pip python3-venv
 
-  [ "$(uname -m)" = "i686"   ] && HOSTISLINUXI686=TRUE
+  [ "$(uname -m)" = "i686" ] && HOSTISLINUXI686=TRUE
+  [ "$(uname -m)" = "i686" ] && IDFGCC=$IDFGCCi686_linux
+  [ "$(uname -m)" = "i686" ] && RTOSGCC=$RTOSGCCi686_linux
   ARCHDIR="$(uname -m)-linux"
 fi
 
@@ -86,7 +91,7 @@ if [ ! -d $BUILDDIR/venv-idf ]; then
   python3 -m venv $BUILDDIR/venv-idf
 fi
 . $BUILDDIR/venv-idf/bin/activate
-pip3 install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | pv --line-mode --size=12 --name "install pydeps" >/dev/null
+python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | pv --line-mode --size=12 --name "install pydeps" >/dev/null
 
 OUTPUTDIR=$BUILDDIR/$ARCHDIR
 [ -d $OUTPUTDIR ] && rm -rf $OUTPUTDIR
@@ -138,6 +143,7 @@ cd $BUILDDIR/esp-idf/examples/get-started/hello_world
 cp $BUILDDIR/sdkconfig-idf4.1-esp32.release sdkconfig
 make clean 2>&1 | pv --line-mode --size=85  --name "make clean    " >/dev/null
 make -j 8 2>&1  | pv --line-mode --size=937 --name "make release  " >/dev/null
+
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6
 cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
@@ -219,7 +225,7 @@ make clean 2>&1 | pv --line-mode --size=60  --name "make clean    " >/dev/null
 make -j 8  2>&1 | pv --line-mode --size=525 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx106/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/debug \;
-#make clean 2>&1 | pv --line-mode --size=59  --name "make clean    " >/dev/null
+make clean 2>&1 | pv --line-mode --size=59  --name "make clean    " >/dev/null
 
 #cleanup
 find $OUTPUTDIR/lx106 -name "*.a" -exec chmod 644 {} \;
