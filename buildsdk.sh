@@ -14,14 +14,14 @@ HOSTISDARWINARM64=
 HOSTISLINUXX86_64=
 HOSTISLINUXI686=
 
-IDFGCCi686_linux=     xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz
-IDFGCCx86_64_linux=   xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
-IDFGCCx86_64_darwin=  xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
-IDFGCCaarch64_darwin= xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+IDFGCCi686_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz
+IDFGCCx86_64_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
+IDFGCCx86_64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+IDFGCCaarch64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
 
-RTOSGCCi686_linux=    xtensa-lx106-elf-linux32-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCx86_64_linux=  xtensa-lx106-elf-linux64-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCx86_64_darwin= xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
+RTOSGCCi686_linux=xtensa-lx106-elf-linux32-1.22.0-100-ge567ec7-5.2.0.tar.gz
+RTOSGCCx86_64_linux=xtensa-lx106-elf-linux64-1.22.0-100-ge567ec7-5.2.0.tar.gz
+RTOSGCCx86_64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
 RTOSGCCaarch64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
 IDFGCC=
 RTOSGCC=
@@ -45,7 +45,8 @@ if [ "$(uname -s)" = "Linux" -a "$CC" != "/usr/src/mxe/usr/bin/x86_64-w64-mingw3
   [ "$(uname -m)" = "x86_64" ] && HOSTISLINUXX86_64=TRUE
   [ "$(uname -m)" = "x86_64" ] && IDFGCC=$IDFGCCx86_64_linux
   [ "$(uname -m)" = "x86_64" ] && RTOSGCC=$RTOSGCCx86_64_linux
-  sudo apt-get install -y pv python3 python3-pip python3-venv
+  [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y pv 2>&1 >/dev/null
+  [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y python3 python3-pip python3-venv 2>&1 | pv --line-mode --size=238 --name "apt install   " >/dev/null
 
   [ "$(uname -m)" = "i686" ] && HOSTISLINUXI686=TRUE
   [ "$(uname -m)" = "i686" ] && IDFGCC=$IDFGCCi686_linux
