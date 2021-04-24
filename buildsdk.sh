@@ -139,6 +139,7 @@ if [ ! -f $BUILDDIR/venv-idf/bin/activate ]; then
 fi
 
 . $BUILDDIR/venv-idf/bin/activate
+python3 -m pip install --upgrade pip
 python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
 
 OUTPUTDIR=$BUILDDIR/$ARCHDIR
