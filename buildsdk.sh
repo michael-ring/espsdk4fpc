@@ -1,6 +1,10 @@
 #!/bin/sh
 IDFVER=4.1.1
 RTOSVER=3.3
+
+PV=pv
+[ "$1" = "--log" ] && PV="tee buildsdk.log | pv"
+
 [ ! -d esp-idf ] && git clone -b v$IDFVER --recursive https://github.com/espressif/esp-idf.git
 [ ! -d ESP8266_RTOS_SDK ] && git clone -b v$RTOSVER --recursive https://github.com/espressif/ESP8266_RTOS_SDK.git
 
@@ -45,8 +49,6 @@ if [ "$(uname -s)" = "Linux" -a "$CC" != "/usr/src/mxe/usr/bin/x86_64-w64-mingw3
   [ "$(uname -m)" = "x86_64" ] && HOSTISLINUXX86_64=TRUE
   [ "$(uname -m)" = "x86_64" ] && IDFGCC=$IDFGCCx86_64_linux
   [ "$(uname -m)" = "x86_64" ] && RTOSGCC=$RTOSGCCx86_64_linux
-  [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y pv 2>&1 >/dev/null
-  [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y python3 python3-pip python3-venv 2>&1 | pv --line-mode --size=238 --name "apt install   " >/dev/null
 
   [ "$(uname -m)" = "i686" ] && HOSTISLINUXI686=TRUE
   [ "$(uname -m)" = "i686" ] && IDFGCC=$IDFGCCi686_linux
@@ -82,6 +84,42 @@ if [ -z "$IDFGCC" ]; then
   echo "Your platform is currently not supported"
   exit 1
 fi
+echo "Checking dependencies"
+echo
+if [ HOSTISLINUX = TRUE ]; then
+  # Dockercross always needs an install of python3
+  [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y pv 2>&1 >/dev/null
+  [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y python3 python3-pip python3-venv 2>&1 | $PV --line-mode --size=238 --name "apt install   " >/dev/null
+fi
+pv --help 2>/dev/null >/dev/null
+if [ "$?" != 0 ]; then
+  echo "pv is not installed, please download install"
+  echo "on debian like linux: sudo apt-get install pv"
+  echo "on redhat like linux: sudo dnf install pv"
+  echo "on mac install homebrew from https://brew.sh and: brew install pv"
+  exit 1
+fi
+python3 --version 2>/dev/null >/dev/null
+if [ "$?" != 0 ]; then
+  echo "python3 is not installed, please download from https://www.python.org/ and install"
+  echo "on debian like linux: sudo apt-get install python3 python3-pip python3-venv"
+  echo "on redhat like linux: sudo dnf install python3 python3-pip python3-venv"
+  exit 1
+fi
+python3 -c 'help("modules")' | grep -w pip 2>&1 >/dev/null
+if [ "$?" != 0 ]; then
+  echo "python3 module 'pip' is not installed, please fix"
+  echo "on debian like linux: sudo apt-get install python3-pip"
+  echo "on redhat like linux: sudo dnf install python3-pip"
+  exit 1
+fi
+python3 -c 'help("modules")' | grep -w venv 2>&1 >/dev/null
+if [ "$?" != 0 ]; then
+  echo "python3 module 'venv' is not installed, please fix"
+  echo "on debian like linux: sudo apt-get install python3-venv"
+  echo "on redhat like linux: sudo dnf install python3-venv"
+  exit 1
+fi
 
 echo
 echo "Processing esp-idf"
@@ -89,11 +127,19 @@ echo
 IDF_PATH=$BUILDDIR/esp-idf
 export IDF_PATH
 
+[ -d $BUILDDIR/venv-idf ] && rm -rf $BUILDDIR/venv-idf
+[ -d $BUILDDIR/venv-rtos ] && rm -rf $BUILDDIR/venv-rtos
+
 if [ ! -d $BUILDDIR/venv-idf ]; then
   python3 -m venv $BUILDDIR/venv-idf
 fi
+if [ ! -f $BUILDDIR/venv-idf/bin/activate ]; then
+  echo "Could not create virtual environment, must exit"
+  exit 1
+fi
+
 . $BUILDDIR/venv-idf/bin/activate
-python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | pv --line-mode --size=12 --name "install pydeps" >/dev/null
+python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
 
 OUTPUTDIR=$BUILDDIR/$ARCHDIR
 [ -d $OUTPUTDIR ] && rm -rf $OUTPUTDIR
@@ -104,7 +150,7 @@ mkdir $OUTPUTDIR/lx6
 [ -d $BUILDDIR/tmp ] && rm -rf $BUILDDIR/tmp
 mkdir $BUILDDIR/tmp
 cd $BUILDDIR/tmp
-tar zxvf $BUILDDIR/$IDFGCC 2>&1 | pv --line-mode --size=1867 --name "extract gcc   " >/dev/null
+tar zxvf $BUILDDIR/$IDFGCC 2>&1 | $PV --line-mode --size=1867 --name "extract gcc   " >/dev/null
 
 cp xtensa-esp32-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-esp32-elf/libexec $OUTPUTDIR/
@@ -143,18 +189,18 @@ export PATH
 
 cd $BUILDDIR/esp-idf/examples/get-started/hello_world
 cp $BUILDDIR/sdkconfig-idf4.1-esp32.release sdkconfig
-make clean 2>&1 | pv --line-mode --size=85  --name "make clean    " >/dev/null
-make -j 8 2>&1  | pv --line-mode --size=937 --name "make release  " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=85  --name "make clean    " >/dev/null
+make -j 8 2>&1  | $PV --line-mode --size=937 --name "make release  " >/dev/null
 
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6
 cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
 cp $BUILDDIR/sdkconfig-idf4.1-esp32.debug sdkconfig
-make clean 2>&1 | pv --line-mode --size=88  --name "make clean    " >/dev/null
-make -j 8 2>&1  | pv --line-mode --size=937 --name "make debug    " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=88  --name "make clean    " >/dev/null
+make -j 8 2>&1  | $PV --line-mode --size=937 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx6/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/debug \;
-make clean 2>&1 | pv --line-mode --size=86 --name "make clean     " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=86 --name "make clean     " >/dev/null
 
 #cleanup
 rm -rf $OUTPUTDIR/lx6/include
@@ -175,14 +221,14 @@ if [ ! -d $BUILDDIR/venv-rtos ]; then
   python3 -m venv $BUILDDIR/venv-rtos
 fi
 . $BUILDDIR/venv-rtos/bin/activate
-pip3 install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | pv --line-mode --size=11 --name "install pydeps" >/dev/null
+pip3 install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | $PV --line-mode --size=11 --name "install pydeps" >/dev/null
 
 mkdir $OUTPUTDIR/lx106
 
 [ -d $BUILDDIR/tmp ] && rm -rf $BUILDDIR/tmp
 mkdir $BUILDDIR/tmp
 cd $BUILDDIR/tmp
-tar zxvf $BUILDDIR/$RTOSGCC 2>&1 | pv --line-mode --size=1590 --name "extract gcc   " >/dev/null
+tar zxvf $BUILDDIR/$RTOSGCC 2>&1 | $PV --line-mode --size=1590 --name "extract gcc   " >/dev/null
 
 cp xtensa-lx106-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-lx106-elf/libexec $OUTPUTDIR/
@@ -217,17 +263,17 @@ done
 PATH=$BUILDDIR/tmp/xtensa-lx106-elf/bin:$OLDPATH
 cd $BUILDDIR/ESP8266_RTOS_SDK/examples/get-started/hello_world
 cp $BUILDDIR/sdkconfig-rtos$RTOSVER-lx106.release sdkconfig
-make clean 2>&1 | pv --line-mode --size=57  --name "make clean    " >/dev/null
-make -j 8  2>&1 | pv --line-mode --size=525 --name "make release  " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=57  --name "make clean    " >/dev/null
+make -j 8  2>&1 | $PV --line-mode --size=525 --name "make release  " >/dev/null
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx106
 cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx106
 cp $BUILDDIR/sdkconfig-rtos$RTOSVER-lx106.debug sdkconfig
-make clean 2>&1 | pv --line-mode --size=60  --name "make clean    " >/dev/null
-make -j 8  2>&1 | pv --line-mode --size=525 --name "make debug    " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=60  --name "make clean    " >/dev/null
+make -j 8  2>&1 | $PV --line-mode --size=525 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx106/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/debug \;
-make clean 2>&1 | pv --line-mode --size=59  --name "make clean    " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=59  --name "make clean    " >/dev/null
 
 #cleanup
 find $OUTPUTDIR/lx106 -name "*.a" -exec chmod 644 {} \;
