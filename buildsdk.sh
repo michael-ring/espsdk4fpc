@@ -88,7 +88,7 @@ fi
 echo "Checking dependencies"
 echo $BUILDDIR
 echo
-if [ $HOSTISLINUX = TRUE ]; then
+if [ "$HOSTISLINUX" = TRUE ]; then
   # Dockercross always needs an install of python3
   [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y pv 2>&1 >/dev/null
   [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y python3 python3-pip python3-venv 2>&1 | $PV --line-mode --size=238 --name "apt install   " >/dev/null
