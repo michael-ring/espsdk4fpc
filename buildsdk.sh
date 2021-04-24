@@ -84,9 +84,11 @@ if [ -z "$IDFGCC" ]; then
   echo "Your platform is currently not supported"
   exit 1
 fi
+
 echo "Checking dependencies"
+echo $BUILDDIR
 echo
-if [ HOSTISLINUX = TRUE ]; then
+if [ $HOSTISLINUX = TRUE ]; then
   # Dockercross always needs an install of python3
   [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y pv 2>&1 >/dev/null
   [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y python3 python3-pip python3-venv 2>&1 | $PV --line-mode --size=238 --name "apt install   " >/dev/null
@@ -106,14 +108,14 @@ if [ "$?" != 0 ]; then
   echo "on redhat like linux: sudo dnf install python3 python3-pip python3-venv"
   exit 1
 fi
-python3 -c 'help("modules")' | grep -w pip 2>&1 >/dev/null
+python3 -c 'help("modules")' 2>/dev/null | grep -w pip >/dev/null
 if [ "$?" != 0 ]; then
   echo "python3 module 'pip' is not installed, please fix"
   echo "on debian like linux: sudo apt-get install python3-pip"
   echo "on redhat like linux: sudo dnf install python3-pip"
   exit 1
 fi
-python3 -c 'help("modules")' | grep -w venv 2>&1 >/dev/null
+python3 -c 'help("modules")' 2>/dev/null | grep -w venv >/dev/null
 if [ "$?" != 0 ]; then
   echo "python3 module 'venv' is not installed, please fix"
   echo "on debian like linux: sudo apt-get install python3-venv"
@@ -142,7 +144,7 @@ fi
 python3 -m pip install --upgrade pip 2>/dev/null >/dev/null
 python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
 
-python3 -c 'help("modules")' | grep -w cryptography >/dev/null
+python3 -c 'help("modules")' 2>/dev/null | grep -w cryptography >/dev/null
 if [ "$?" != 0 ]; then
   echo "Setting up modules for venv failed, please report back the following lines:"
   python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt
@@ -233,7 +235,7 @@ fi
 python3 -m pip install --upgrade pip 2>/dev/null >/dev/null
 python3 -m pip install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
 
-python3 -c 'help("modules")' | grep -w cryptography >/dev/null
+python3 -c 'help("modules")' 2>/dev/null | grep -w cryptography >/dev/null
 if [ "$?" != 0 ]; then
   echo "Setting up modules for venv failed, please report back the following lines:"
   python3 -m pip install -r $BUILDDIR/esp-rtos/requirements.txt
