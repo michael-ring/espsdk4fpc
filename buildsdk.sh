@@ -139,8 +139,15 @@ if [ ! -f $BUILDDIR/venv-idf/bin/activate ]; then
 fi
 
 . $BUILDDIR/venv-idf/bin/activate
-python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade pip 2>/dev/null >/dev/null
 python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
+
+python3 -c 'help("modules")' | grep -w cryptography >/dev/null
+if [ "$?" != 0 ]; then
+  echo "Setting up modules for venv failed, please report back the following lines:"
+  python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt
+  exit 1
+fi
 
 OUTPUTDIR=$BUILDDIR/$ARCHDIR
 [ -d $OUTPUTDIR ] && rm -rf $OUTPUTDIR
@@ -221,8 +228,17 @@ export IDF_PATH
 if [ ! -d $BUILDDIR/venv-rtos ]; then
   python3 -m venv $BUILDDIR/venv-rtos
 fi
+
 . $BUILDDIR/venv-rtos/bin/activate
-pip3 install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | $PV --line-mode --size=11 --name "install pydeps" >/dev/null
+python3 -m pip install --upgrade pip 2>/dev/null >/dev/null
+python3 -m pip install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
+
+python3 -c 'help("modules")' | grep -w cryptography >/dev/null
+if [ "$?" != 0 ]; then
+  echo "Setting up modules for venv failed, please report back the following lines:"
+  python3 -m pip install -r $BUILDDIR/esp-rtos/requirements.txt
+  exit 1
+fi
 
 mkdir $OUTPUTDIR/lx106
 
