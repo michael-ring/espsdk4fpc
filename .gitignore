@@ -61,3 +61,5 @@ i686-linux/
 venv-idf/
 venv-rtos/
 venv/
+ESP8266_RTOS_SDK
+esp-idf

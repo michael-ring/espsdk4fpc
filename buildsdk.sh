@@ -205,11 +205,22 @@ make -j 8 2>&1  | $PV --line-mode --size=937 --name "make release  " >/dev/null
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6
 cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
+
+# Generate OTA partition files
+echo Generating partitions_two_ota 
+python3 $BUILDDIR/esp-idf/components/partition_table/gen_esp32part.py $BUILDDIR/esp-idf/components/partition_table/partitions_two_ota.csv partitions_two_ota.bin
+cp ./partitions_two_ota.bin   $OUTPUTDIR/lx6
+# Generate empty ota_data_initial.bin file
+echo Generating initial OTA data partition
+python3 $BUILDDIR/esp-idf/components/partition_table/gen_empty_partition.py 0x2000 ota_data_initial.bin 
+cp ./ota_data_initial.bin   $OUTPUTDIR/lx6
+
 cp $BUILDDIR/sdkconfig-idf4.1-esp32.debug sdkconfig
 make clean 2>&1 | $PV --line-mode --size=88  --name "make clean    " >/dev/null
 make -j 8 2>&1  | $PV --line-mode --size=937 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx6/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/debug \;
+cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6/debug
 make clean 2>&1 | $PV --line-mode --size=86 --name "make clean     " >/dev/null
 
 #cleanup
@@ -287,11 +298,25 @@ make -j 8  2>&1 | $PV --line-mode --size=525 --name "make release  " >/dev/null
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx106
 cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx106
+
+# Generate OTA partition files
+echo Generating partitions_two_ota 
+python3 $BUILDDIR/ESP8266_RTOS_SDK/components/partition_table/gen_esp32part.py $BUILDDIR/ESP8266_RTOS_SDK/components/partition_table/partitions_two_ota.csv partitions_two_ota.bin
+cp ./partitions_two_ota.bin   $OUTPUTDIR/lx106
+echo Generating partitions_two_ota 1MB 
+python3 $BUILDDIR/ESP8266_RTOS_SDK/components/partition_table/gen_esp32part.py $BUILDDIR/ESP8266_RTOS_SDK/components/partition_table/partitions_two_ota.1MB.csv partitions_two_ota.1MB.bin
+cp ./partitions_two_ota.1MB.bin   $OUTPUTDIR/lx106
+# Generate empty ota_data_initial.bin file
+echo Generating initial OTA data partition
+python3 $BUILDDIR/ESP8266_RTOS_SDK/components/partition_table/gen_empty_partition.py 0x2000 ota_data_initial.bin 
+cp ./ota_data_initial.bin   $OUTPUTDIR/lx106
+
 cp $BUILDDIR/sdkconfig-rtos$RTOSVER-lx106.debug sdkconfig
 make clean 2>&1 | $PV --line-mode --size=60  --name "make clean    " >/dev/null
 make -j 8  2>&1 | $PV --line-mode --size=525 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx106/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/debug \;
+cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx106/debug
 make clean 2>&1 | $PV --line-mode --size=59  --name "make clean    " >/dev/null
 
 #cleanup
