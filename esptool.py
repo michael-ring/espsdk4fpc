@@ -53,7 +53,7 @@ fi
 
 . $IDF_PATH/venv/bin/activate
 
-if [ -z "$(python3 -m pip list | grep cryptography )" ]; then
+if [ -z "$(python3 -m pip list | grep -w cryptography )" ]; then
   python3 -m pip install --upgrade pip
   python3 -m pip install -r $IDF_PATH/requirements.txt
 fi
