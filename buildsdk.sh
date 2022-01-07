@@ -144,7 +144,7 @@ fi
 
 . $BUILDDIR/venv-idf/bin/activate
 python3 -m pip install --upgrade pip 2>/dev/null >/dev/null
-python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
+python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | $PV --line-mode --size=67 --name "install pydeps" >/dev/null
 
 python3 -c 'help("modules")' 2>/dev/null | grep -w cryptography >/dev/null
 if [ "$?" != 0 ]; then
@@ -162,7 +162,7 @@ mkdir $OUTPUTDIR/lx6
 [ -d $BUILDDIR/tmp ] && rm -rf $BUILDDIR/tmp
 mkdir $BUILDDIR/tmp
 cd $BUILDDIR/tmp
-tar zxvf $BUILDDIR/$IDFGCC 2>&1 | $PV --line-mode --size=1867 --name "extract gcc   " >/dev/null
+tar zxvf $BUILDDIR/$IDFGCC 2>&1 | $PV --line-mode --size=2035 --name "extract gcc   " >/dev/null
 
 cp xtensa-esp32-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-esp32-elf/libexec $OUTPUTDIR/
@@ -219,13 +219,14 @@ echo Generating initial OTA data partition
 python3 $BUILDDIR/esp-idf/components/partition_table/gen_empty_partition.py 0x2000 ota_data_initial.bin 
 cp ./ota_data_initial.bin   $OUTPUTDIR/lx6
 
-cp $BUILDDIR/sdkconfig-idf4.1-esp32.debug sdkconfig
-make clean 2>&1 | $PV --line-mode --size=88  --name "make clean    " >/dev/null
-make -j 8 2>&1  | $PV --line-mode --size=937 --name "make debug    " >/dev/null
+cp $BUILDDIR/sdkconfig-idf$IDFVER-esp32.debug sdkconfig
+make clean 2>&1 | $PV --line-mode --size=105  --name "make clean    " >/dev/null
+make -j 8 2>&1  | $PV --line-mode --size=1068 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx6/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/debug \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6/debug
-make clean 2>&1 | $PV --line-mode --size=86 --name "make clean     " >/dev/null
+
+make clean 2>&1 | $PV --line-mode --size=99 --name "make clean     " >/dev/null
 
 #cleanup
 rm -rf $OUTPUTDIR/lx6/include
@@ -248,7 +249,7 @@ fi
 
 . $BUILDDIR/venv-rtos/bin/activate
 python3 -m pip install --upgrade pip 2>/dev/null >/dev/null
-python3 -m pip install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
+python3 -m pip install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | $PV --line-mode --size=19 --name "install pydeps" >/dev/null
 
 python3 -c 'help("modules")' 2>/dev/null | grep -w cryptography >/dev/null
 if [ "$?" != 0 ]; then
@@ -262,7 +263,7 @@ mkdir $OUTPUTDIR/lx106
 [ -d $BUILDDIR/tmp ] && rm -rf $BUILDDIR/tmp
 mkdir $BUILDDIR/tmp
 cd $BUILDDIR/tmp
-tar zxvf $BUILDDIR/$RTOSGCC 2>&1 | $PV --line-mode --size=1590 --name "extract gcc   " >/dev/null
+tar zxvf $BUILDDIR/$RTOSGCC 2>&1 | $PV --line-mode --size=1892 --name "extract gcc   " >/dev/null
 
 cp xtensa-lx106-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-lx106-elf/libexec $OUTPUTDIR/
@@ -297,8 +298,8 @@ done
 PATH=$BUILDDIR/tmp/xtensa-lx106-elf/bin:$OLDPATH
 cd $BUILDDIR/ESP8266_RTOS_SDK/examples/get-started/hello_world
 cp $BUILDDIR/sdkconfig-rtos$RTOSVER-lx106.release sdkconfig
-make clean 2>&1 | $PV --line-mode --size=57  --name "make clean    " >/dev/null
-make -j 8  2>&1 | $PV --line-mode --size=525 --name "make release  " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=65  --name "make clean    " >/dev/null
+make -j 8  2>&1 | $PV --line-mode --size=604 --name "make release  " >/dev/null
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx106
 cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx106
@@ -318,8 +319,8 @@ python3 $BUILDDIR/ESP8266_RTOS_SDK/components/partition_table/gen_empty_partitio
 cp ./ota_data_initial.bin   $OUTPUTDIR/lx106
 
 cp $BUILDDIR/sdkconfig-rtos$RTOSVER-lx106.debug sdkconfig
-make clean 2>&1 | $PV --line-mode --size=60  --name "make clean    " >/dev/null
-make -j 8  2>&1 | $PV --line-mode --size=525 --name "make debug    " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=64  --name "make clean    " >/dev/null
+make -j 8  2>&1 | $PV --line-mode --size=604 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx106/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/debug \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx106/debug
