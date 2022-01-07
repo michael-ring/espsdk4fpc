@@ -1,6 +1,6 @@
 #!/bin/sh
-IDFVER=4.1.1
-RTOSVER=3.3
+IDFVER=4.3.2
+RTOSVER=3.4
 
 PV=pv
 [ "$1" = "--log" ] && PV="tee buildsdk.log | pv"
@@ -18,15 +18,17 @@ HOSTISDARWINARM64=
 HOSTISLINUXX86_64=
 HOSTISLINUXI686=
 
-IDFGCCi686_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz
-IDFGCCx86_64_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
-IDFGCCx86_64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
-IDFGCCaarch64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+IDFGCC=xtensa-esp32-elf-gcc8_4_0-esp-2021r2
+IDFGCCi686_linux=$IDFGCC-linux-i686.tar.gz
+IDFGCCx86_64_linux=$IDFGCC-linux-amd64.tar.gz
+IDFGCCx86_64_darwin=$IDF_GCC-macos.tar.gz
+IDFGCCaarch64_darwin=$IDF_GCC-macos.tar.gz
 
-RTOSGCCi686_linux=xtensa-lx106-elf-linux32-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCx86_64_linux=xtensa-lx106-elf-linux64-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCx86_64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCaarch64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
+RTOSGCC=xtensa-lx106-elf-gcc8_4_0-esp-2020r3
+RTOSGCCi686_linux=$RTOSGCC-linux-i686.tar.gz
+RTOSGCCx86_64_linux=$RTOSGCC-linux-amd64.tar.gz
+RTOSGCCx86_64_darwin=$RTOSGCC-macos.tar.gz
+RTOSGCCaarch64_darwin=$RTOS-macos.tar.gz
 IDFGCC=
 RTOSGCC=
 
@@ -198,9 +200,9 @@ PATH=$BUILDDIR/tmp/xtensa-esp32-elf/bin:$PATH
 export PATH
 
 cd $BUILDDIR/esp-idf/examples/get-started/hello_world
-cp $BUILDDIR/sdkconfig-idf4.1-esp32.release sdkconfig
-make clean 2>&1 | $PV --line-mode --size=85  --name "make clean    " >/dev/null
-make -j 8 2>&1  | $PV --line-mode --size=937 --name "make release  " >/dev/null
+cp $BUILDDIR/sdkconfig-idf$IDFVER-esp32.release sdkconfig
+make clean 2>&1 | $PV --line-mode --size=105  --name "make clean    " >/dev/null
+make -j 8 2>&1  | $PV --line-mode --size=1068 --name "make release  " >/dev/null
 
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6
@@ -262,7 +264,7 @@ tar zxvf $BUILDDIR/$RTOSGCC 2>&1 | $PV --line-mode --size=1590 --name "extract g
 
 cp xtensa-lx106-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-lx106-elf/libexec $OUTPUTDIR/
-cp -r xtensa-lx106-elf/xtensa-lx106-elf/sysroot/lib/* $OUTPUTDIR/lx106/
+cp -r xtensa-lx106-elf/xtensa-lx106-elf/lib/* $OUTPUTDIR/lx106/
 
 cp $BUILDDIR/ESP8266_RTOS_SDK/components/newlib/newlib/lib/*.a $OUTPUTDIR/lx106/
 cp $BUILDDIR/ESP8266_RTOS_SDK/components/esp8266/lib/*.a     $OUTPUTDIR/lx106/
