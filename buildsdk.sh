@@ -172,6 +172,7 @@ cp -r xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/*/* $OUTPUTDIR/lx6/
 cp -r $BUILDDIR/esp-idf/components/xtensa/esp32/   $OUTPUTDIR/lx6/
 cp -r $BUILDDIR/esp-idf/components/bt/controller/lib_esp32/esp32/ $OUTPUTDIR/lx6/
 cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32/ $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/xtensa/esp32/*.a $OUTPUTDIR/lx6/
 
 mkdir -p $OUTPUTDIR/esp-idf-$IDFVER/components
 cd $BUILDDIR/esp-idf/components
