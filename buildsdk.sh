@@ -1,6 +1,6 @@
 #!/bin/sh
-IDFVER=4.1.1
-RTOSVER=3.3
+IDFVER=4.3.2
+RTOSVER=3.4
 
 PV=pv
 [ "$1" = "--log" ] && PV="tee buildsdk.log | pv"
@@ -18,15 +18,17 @@ HOSTISDARWINARM64=
 HOSTISLINUXX86_64=
 HOSTISLINUXI686=
 
-IDFGCCi686_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz
-IDFGCCx86_64_linux=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
-IDFGCCx86_64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
-IDFGCCaarch64_darwin=xtensa-esp32-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+IDFGCC=xtensa-esp32-elf-gcc8_4_0-esp-2021r2
+IDFGCCi686_linux=$IDFGCC-linux-i686.tar.gz
+IDFGCCx86_64_linux=$IDFGCC-linux-amd64.tar.gz
+IDFGCCx86_64_darwin=$IDF_GCC-macos.tar.gz
+IDFGCCaarch64_darwin=$IDF_GCC-macos.tar.gz
 
-RTOSGCCi686_linux=xtensa-lx106-elf-linux32-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCx86_64_linux=xtensa-lx106-elf-linux64-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCx86_64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
-RTOSGCCaarch64_darwin=xtensa-lx106-elf-macos-1.22.0-100-ge567ec7-5.2.0.tar.gz
+RTOSGCC=xtensa-lx106-elf-gcc8_4_0-esp-2020r3
+RTOSGCCi686_linux=$RTOSGCC-linux-i686.tar.gz
+RTOSGCCx86_64_linux=$RTOSGCC-linux-amd64.tar.gz
+RTOSGCCx86_64_darwin=$RTOSGCC-macos.tar.gz
+RTOSGCCaarch64_darwin=$RTOS-macos.tar.gz
 IDFGCC=
 RTOSGCC=
 
@@ -142,7 +144,7 @@ fi
 
 . $BUILDDIR/venv-idf/bin/activate
 python3 -m pip install --upgrade pip 2>/dev/null >/dev/null
-python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
+python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | $PV --line-mode --size=67 --name "install pydeps" >/dev/null
 
 python3 -c 'help("modules")' 2>/dev/null | grep -w cryptography >/dev/null
 if [ "$?" != 0 ]; then
@@ -160,7 +162,7 @@ mkdir $OUTPUTDIR/lx6
 [ -d $BUILDDIR/tmp ] && rm -rf $BUILDDIR/tmp
 mkdir $BUILDDIR/tmp
 cd $BUILDDIR/tmp
-tar zxvf $BUILDDIR/$IDFGCC 2>&1 | $PV --line-mode --size=1867 --name "extract gcc   " >/dev/null
+tar zxvf $BUILDDIR/$IDFGCC 2>&1 | $PV --line-mode --size=2035 --name "extract gcc   " >/dev/null
 
 cp xtensa-esp32-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-esp32-elf/libexec $OUTPUTDIR/
@@ -168,8 +170,9 @@ cp -r xtensa-esp32-elf/xtensa-esp32-elf/lib/* $OUTPUTDIR/lx6/
 cp -r xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/*/* $OUTPUTDIR/lx6/
 
 cp -r $BUILDDIR/esp-idf/components/xtensa/esp32/   $OUTPUTDIR/lx6/
-cp -r $BUILDDIR/esp-idf/components/bt/controller/lib/ $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/bt/controller/lib_esp32/esp32/ $OUTPUTDIR/lx6/
 cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32/ $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/xtensa/esp32/*.a $OUTPUTDIR/lx6/
 
 mkdir -p $OUTPUTDIR/esp-idf-$IDFVER/components
 cd $BUILDDIR/esp-idf/components
@@ -198,13 +201,15 @@ PATH=$BUILDDIR/tmp/xtensa-esp32-elf/bin:$PATH
 export PATH
 
 cd $BUILDDIR/esp-idf/examples/get-started/hello_world
-cp $BUILDDIR/sdkconfig-idf4.1-esp32.release sdkconfig
-make clean 2>&1 | $PV --line-mode --size=85  --name "make clean    " >/dev/null
-make -j 8 2>&1  | $PV --line-mode --size=937 --name "make release  " >/dev/null
+cp $BUILDDIR/sdkconfig-idf$IDFVER-esp32.release sdkconfig
+make clean 2>&1 | $PV --line-mode --size=105  --name "make clean    " >/dev/null
+make -j 8 2>&1  | $PV --line-mode --size=1068 --name "make release  " >/dev/null
 
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6
 cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
+cp ./build/esp32/esp32.project.ld     $OUTPUTDIR/lx6
+cp ./build/esp32/esp32_out.ld         $OUTPUTDIR/lx6
 
 # Generate OTA partition files
 echo Generating partitions_two_ota 
@@ -215,13 +220,14 @@ echo Generating initial OTA data partition
 python3 $BUILDDIR/esp-idf/components/partition_table/gen_empty_partition.py 0x2000 ota_data_initial.bin 
 cp ./ota_data_initial.bin   $OUTPUTDIR/lx6
 
-cp $BUILDDIR/sdkconfig-idf4.1-esp32.debug sdkconfig
-make clean 2>&1 | $PV --line-mode --size=88  --name "make clean    " >/dev/null
-make -j 8 2>&1  | $PV --line-mode --size=937 --name "make debug    " >/dev/null
+cp $BUILDDIR/sdkconfig-idf$IDFVER-esp32.debug sdkconfig
+make clean 2>&1 | $PV --line-mode --size=105  --name "make clean    " >/dev/null
+make -j 8 2>&1  | $PV --line-mode --size=1068 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx6/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/debug \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6/debug
-make clean 2>&1 | $PV --line-mode --size=86 --name "make clean     " >/dev/null
+
+make clean 2>&1 | $PV --line-mode --size=99 --name "make clean     " >/dev/null
 
 #cleanup
 rm -rf $OUTPUTDIR/lx6/include
@@ -244,7 +250,7 @@ fi
 
 . $BUILDDIR/venv-rtos/bin/activate
 python3 -m pip install --upgrade pip 2>/dev/null >/dev/null
-python3 -m pip install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | $PV --line-mode --size=12 --name "install pydeps" >/dev/null
+python3 -m pip install -r $BUILDDIR/ESP8266_RTOS_SDK/requirements.txt 2>&1 | $PV --line-mode --size=19 --name "install pydeps" >/dev/null
 
 python3 -c 'help("modules")' 2>/dev/null | grep -w cryptography >/dev/null
 if [ "$?" != 0 ]; then
@@ -258,11 +264,11 @@ mkdir $OUTPUTDIR/lx106
 [ -d $BUILDDIR/tmp ] && rm -rf $BUILDDIR/tmp
 mkdir $BUILDDIR/tmp
 cd $BUILDDIR/tmp
-tar zxvf $BUILDDIR/$RTOSGCC 2>&1 | $PV --line-mode --size=1590 --name "extract gcc   " >/dev/null
+tar zxvf $BUILDDIR/$RTOSGCC 2>&1 | $PV --line-mode --size=1892 --name "extract gcc   " >/dev/null
 
 cp xtensa-lx106-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-lx106-elf/libexec $OUTPUTDIR/
-cp -r xtensa-lx106-elf/xtensa-lx106-elf/sysroot/lib/* $OUTPUTDIR/lx106/
+cp -r xtensa-lx106-elf/xtensa-lx106-elf/lib/* $OUTPUTDIR/lx106/
 
 cp $BUILDDIR/ESP8266_RTOS_SDK/components/newlib/newlib/lib/*.a $OUTPUTDIR/lx106/
 cp $BUILDDIR/ESP8266_RTOS_SDK/components/esp8266/lib/*.a     $OUTPUTDIR/lx106/
@@ -293,11 +299,13 @@ done
 PATH=$BUILDDIR/tmp/xtensa-lx106-elf/bin:$OLDPATH
 cd $BUILDDIR/ESP8266_RTOS_SDK/examples/get-started/hello_world
 cp $BUILDDIR/sdkconfig-rtos$RTOSVER-lx106.release sdkconfig
-make clean 2>&1 | $PV --line-mode --size=57  --name "make clean    " >/dev/null
-make -j 8  2>&1 | $PV --line-mode --size=525 --name "make release  " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=65  --name "make clean    " >/dev/null
+make -j 8  2>&1 | $PV --line-mode --size=604 --name "make release  " >/dev/null
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx106
 cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx106
+cp ./build/esp8266/esp8266.project.ld $OUTPUTDIR/lx106
+cp ./build/esp8266/esp8266_out.ld     $OUTPUTDIR/lx106
 
 # Generate OTA partition files
 echo Generating partitions_two_ota 
@@ -312,12 +320,15 @@ python3 $BUILDDIR/ESP8266_RTOS_SDK/components/partition_table/gen_empty_partitio
 cp ./ota_data_initial.bin   $OUTPUTDIR/lx106
 
 cp $BUILDDIR/sdkconfig-rtos$RTOSVER-lx106.debug sdkconfig
-make clean 2>&1 | $PV --line-mode --size=60  --name "make clean    " >/dev/null
-make -j 8  2>&1 | $PV --line-mode --size=525 --name "make debug    " >/dev/null
+make clean 2>&1 | $PV --line-mode --size=64  --name "make clean    " >/dev/null
+make -j 8  2>&1 | $PV --line-mode --size=604 --name "make debug    " >/dev/null
 mkdir $OUTPUTDIR/lx106/debug
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx106/debug \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx106/debug
-make clean 2>&1 | $PV --line-mode --size=59  --name "make clean    " >/dev/null
+cp ./build/esp8266/esp8266.project.ld $OUTPUTDIR/lx106/debug
+cp ./build/esp8266/esp8266_out.ld     $OUTPUTDIR/lx106/debug
+
+make clean 2>&1 | $PV --line-mode --size=62  --name "make clean    " >/dev/null
 
 #cleanup
 find $OUTPUTDIR/lx106 -name "*.a" -exec chmod 644 {} \;
