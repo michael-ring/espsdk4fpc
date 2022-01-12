@@ -11,14 +11,14 @@ if [ "$?" != 0 ]; then
   echo "on redhat like linux: sudo dnf install python3 python3-pip python3-venv"
   exit 1
 fi
-python3 -c 'help("modules")' | grep -w pip 2>&1 >/dev/null
+python3 -m pip 2>&1 >/dev/null
 if [ "$?" != 0 ]; then
   echo "python3 module 'pip' is not installed, please fix"
   echo "on debian like linux: sudo apt-get install python3-pip"
   echo "on redhat like linux: sudo dnf install python3-pip"
   exit 1
 fi
-python3 -c 'help("modules")' | grep -w venv 2>&1 >/dev/null
+python3 -m venv 2>&1 >/dev/null
 if [ "$?" != 0 ]; then
   echo "python3 module 'venv' is not installed, please fix"
   echo "on debian like linux: sudo apt-get install python3-venv"
