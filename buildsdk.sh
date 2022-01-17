@@ -21,8 +21,8 @@ HOSTISLINUXI686=
 IDFGCC=xtensa-esp32-elf-gcc8_4_0-esp-2021r2
 IDFGCCi686_linux=$IDFGCC-linux-i686.tar.gz
 IDFGCCx86_64_linux=$IDFGCC-linux-amd64.tar.gz
-IDFGCCx86_64_darwin=$IDF_GCC-macos.tar.gz
-IDFGCCaarch64_darwin=$IDF_GCC-macos.tar.gz
+IDFGCCx86_64_darwin=$IDFGCC-macos.tar.gz
+IDFGCCaarch64_darwin=$IDFGCC-macos.tar.gz
 
 RTOSGCC=xtensa-lx106-elf-gcc8_4_0-esp-2020r3
 RTOSGCCi686_linux=$RTOSGCC-linux-i686.tar.gz
@@ -53,7 +53,7 @@ if [ "$(uname -s)" = "Linux" -a "$CC" != "/usr/src/mxe/usr/bin/x86_64-w64-mingw3
   [ "$(uname -m)" = "x86_64" ] && RTOSGCC=$RTOSGCCx86_64_linux
 
   [ "$(uname -m)" = "i686" ] && HOSTISLINUXI686=TRUE
-  [ "$(uname -m)" = "i686" ] && IDFGCC=$IDFGCCi686_linux
+  #[ "$(uname -m)" = "i686" ] && IDFGCC=$IDFGCCi686_linux
   [ "$(uname -m)" = "i686" ] && RTOSGCC=$RTOSGCCi686_linux
   ARCHDIR="$(uname -m)-linux"
 fi
@@ -93,7 +93,7 @@ echo
 if [ "$HOSTISLINUX" = TRUE ]; then
   # Dockercross always needs an install of python3
   [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y pv 2>&1 >/dev/null
-  [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y python3 python3-pip python3-venv 2>&1 | $PV --line-mode --size=238 --name "apt install   " >/dev/null
+  [ "$BUILDDIR" = "/work" ] && sudo apt-get install -y python3 python3-dev python3-pip python3-venv python3-wheel 2>&1 | $PV --line-mode --size=238 --name "apt install   " >/dev/null
 fi
 pv --help 2>/dev/null >/dev/null
 if [ "$?" != 0 ]; then
@@ -125,6 +125,14 @@ if [ "$?" != 0 ]; then
   exit 1
 fi
 
+python3 -c 'help("modules")' 2>/dev/null | grep -w wheel >/dev/null
+if [ "$?" != 0 ]; then
+  echo "python3 module 'wheel' is not installed, please fix"
+  echo "on debian like linux: sudo apt-get install python3-wheel"
+  echo "on redhat like linux: sudo dnf install python3-wheel"
+  exit 1
+fi
+
 echo
 echo "Processing esp-idf"
 echo
@@ -144,6 +152,7 @@ fi
 
 . $BUILDDIR/venv-idf/bin/activate
 python3 -m pip install --upgrade pip 2>/dev/null >/dev/null
+python3 -m pip install --upgrade wheel 2>/dev/null >/dev/null
 python3 -m pip install -r $BUILDDIR/esp-idf/requirements.txt 2>&1 | $PV --line-mode --size=67 --name "install pydeps" >/dev/null
 
 python3 -c 'help("modules")' 2>/dev/null | grep -w cryptography >/dev/null
@@ -163,14 +172,13 @@ mkdir $OUTPUTDIR/lx6
 mkdir $BUILDDIR/tmp
 cd $BUILDDIR/tmp
 tar zxvf $BUILDDIR/$IDFGCC 2>&1 | $PV --line-mode --size=2035 --name "extract gcc   " >/dev/null
-
 cp xtensa-esp32-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-esp32-elf/libexec $OUTPUTDIR/
 cp -r xtensa-esp32-elf/xtensa-esp32-elf/lib/* $OUTPUTDIR/lx6/
 cp -r xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/*/* $OUTPUTDIR/lx6/
 
 cp -r $BUILDDIR/esp-idf/components/xtensa/esp32/   $OUTPUTDIR/lx6/
-cp -r $BUILDDIR/esp-idf/components/bt/controller/lib_esp32/esp32/ $OUTPUTDIR/lx6/
+#cp -r $BUILDDIR/esp-idf/components/bt/controller/lib/*.a $OUTPUTDIR/lx6/
 cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32/ $OUTPUTDIR/lx6/
 cp -r $BUILDDIR/esp-idf/components/xtensa/esp32/*.a $OUTPUTDIR/lx6/
 
@@ -207,9 +215,9 @@ make -j 8 2>&1  | $PV --line-mode --size=1068 --name "make release  " >/dev/null
 
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6
-cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
-cp ./build/esp32/esp32.project.ld     $OUTPUTDIR/lx6
-cp ./build/esp32/esp32_out.ld         $OUTPUTDIR/lx6
+#cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
+#cp ./build/esp32/esp32.project.ld     $OUTPUTDIR/lx6
+#cp ./build/esp32/esp32_out.ld         $OUTPUTDIR/lx6
 
 # Generate OTA partition files
 echo Generating partitions_two_ota 
@@ -270,7 +278,7 @@ cp xtensa-lx106-elf/bin/* $OUTPUTDIR/bin/
 cp -r xtensa-lx106-elf/libexec $OUTPUTDIR/
 cp -r xtensa-lx106-elf/xtensa-lx106-elf/lib/* $OUTPUTDIR/lx106/
 
-cp $BUILDDIR/ESP8266_RTOS_SDK/components/newlib/newlib/lib/*.a $OUTPUTDIR/lx106/
+#cp $BUILDDIR/ESP8266_RTOS_SDK/components/newlib/newlib/lib/*.a $OUTPUTDIR/lx106/
 cp $BUILDDIR/ESP8266_RTOS_SDK/components/esp8266/lib/*.a     $OUTPUTDIR/lx106/
 cp $BUILDDIR/ESP8266_RTOS_SDK/components/esp-wolfssl/wolfssl/lib/*.a $OUTPUTDIR/lx106/
 
@@ -335,10 +343,59 @@ find $OUTPUTDIR/lx106 -name "*.a" -exec chmod 644 {} \;
 find $OUTPUTDIR/lx106 -name "*.o" -exec chmod 644 {} \;
 
 echo
-echo "Zipping Results..."
+echo "Zipping Results for $ARCHDIR ..."
 cd  $OUTPUTDIR/
 rm -f ../esplibs-$ARCHDIR.zip 2>/dev/null
 rm -f ../xtensa-binutils-$ARCHDIR.zip 2>/dev/null
 zip -r -q ../xtensa-libs-$ARCHDIR.zip lx6 lx106
 zip -r -q ../xtensa-binutils-$ARCHDIR.zip bin esp-idf-$IDFVER esp-rtos-$RTOSVER libexec
+cd ..
 
+if [ "$ARCHDIR" = "aarch64-darwin" ]; then
+  echo "Zipping Results for x86_64-darwin ..."
+  mkdir x86_64-darwin
+  cp -r aarch64-darwin/* x86_64-darwin/
+  cd x86_64-darwin
+  zip -r -q ../xtensa-libs-x86_64-darwin.zip lx6 lx106
+  zip -r -q ../xtensa-binutils-x86_64-darwin.zip bin esp-idf-$IDFVER esp-rtos-$RTOSVER libexec
+  cd ..
+  rm -rf x86_64-darwin
+fi
+
+if [ "$ARCHDIR" = "x86_64-darwin" ]; then
+  echo "Zipping Results for aarch64-darwin ..."
+  mkdir aarch64-darwin
+  cp -r x86_64-darwin/* aarch64-darwin/
+  cd aarch64-darwin
+  zip -r -q ../xtensa-libs-aarch64-darwin.zip lx6 lx106
+  zip -r -q ../xtensa-binutils-aarch64-darwin.zip bin esp-idf-$IDFVER esp-rtos-$RTOSVER libexec
+  cd ..
+  rm -rf aarch64-darwin
+fi
+set -x 
+if [ "$ARCHDIR" = "x86_64-linux" ]; then
+  pwd
+  echo "Zipping Results for i686-linux ..."
+  mkdir i686-linux
+  cp -r x86_64-linux/* i686-linux/
+  rm -rf i686-linux/bin
+  rm -rf i686-linux/libexec
+  mkdir -p i686-linux/bin
+  mkdir -p i686-linux/libexec
+
+  cd $BUILDDIR/tmp
+  tar zxvf $BUILDDIR/$IDFGCCi686_linux 2>&1 | $PV --line-mode --size=2035 --name "extract gcc   " >/dev/null
+  cp xtensa-esp32-elf/bin/* $BUILDDIR/i686-linux/bin/
+  cp -r xtensa-esp32-elf/libexec $BUILDDIR/i686-linux/
+
+  tar zxvf $BUILDDIR/$RTOSGCCi686_linux 2>&1 | $PV --line-mode --size=1892 --name "extract gcc   " >/dev/null
+  cp xtensa-lx106-elf/bin/* $BUILDDIR/i686-linux/bin/
+  cp -r xtensa-lx106-elf/libexec $BUILDDIR/i686-linux/
+  cd ..
+
+  cd i686-linux
+  zip -r -q ../xtensa-libs-i686-linux.zip lx6 lx106
+  zip -r -q ../xtensa-binutils-i686-linux.zip bin esp-idf-$IDFVER esp-rtos-$RTOSVER libexec
+  cd ..
+  #rm -rf i686-linux
+fi
