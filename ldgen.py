@@ -45,7 +45,7 @@ createVenv()
   fi
 }
 
-IDF_PATH=$(dirname $(dirname $(dirname $(dirname $0))))
+IDF_PATH=$(dirname $(dirname $(dirname $0)))
 echo "(1023) IDF_PATH is $IDF_PATH"
 export IDF_PATH
 if [ ! -f $IDF_PATH/venv/bin/activate ]; then
