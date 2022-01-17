@@ -215,9 +215,9 @@ make -j 8 2>&1  | $PV --line-mode --size=1068 --name "make release  " >/dev/null
 
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6
-#cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
-#cp ./build/esp32/esp32.project.ld     $OUTPUTDIR/lx6
-#cp ./build/esp32/esp32_out.ld         $OUTPUTDIR/lx6
+cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
+cp ./build/esp32/esp32.project.ld     $OUTPUTDIR/lx6
+cp ./build/esp32/esp32_out.ld         $OUTPUTDIR/lx6
 
 # Generate OTA partition files
 echo Generating partitions_two_ota 
@@ -372,7 +372,6 @@ if [ "$ARCHDIR" = "x86_64-darwin" ]; then
   cd ..
   rm -rf aarch64-darwin
 fi
-set -x 
 if [ "$ARCHDIR" = "x86_64-linux" ]; then
   pwd
   echo "Zipping Results for i686-linux ..."
