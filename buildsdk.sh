@@ -396,5 +396,5 @@ if [ "$ARCHDIR" = "x86_64-linux" ]; then
   zip -r -q ../xtensa-libs-i686-linux.zip lx6 lx106
   zip -r -q ../xtensa-binutils-i686-linux.zip bin esp-idf-$IDFVER esp-rtos-$RTOSVER libexec
   cd ..
-  #rm -rf i686-linux
+  rm -rf i686-linux
 fi
