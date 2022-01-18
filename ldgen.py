@@ -63,7 +63,7 @@ fi
 PATH=$IDF_PATH/tools:$PATH
 export PATH
 
-python3 $IDF_PATH/tools/ldgen/ldgen-orig.py 2>/dev/null >/dev/null
+python3 $IDF_PATH/tools/ldgen/ldgen-orig.py -h 2>/dev/null >/dev/null
 if [ "$?" != 0 ]; then
   # something ist wrong, refresh the venv...
   echo "(1023) refreshing outdated venv, if you see this on every compile then create an issue on https://github.com/michael-ring/espsdk4fpc/issues"
