@@ -1,5 +1,5 @@
 #!/bin/sh
-IDFVER=4.3.2
+IDFVER=4.4
 RTOSVER=3.4
 
 PV=pv
@@ -177,10 +177,11 @@ cp -r xtensa-esp32-elf/libexec $OUTPUTDIR/
 cp -r xtensa-esp32-elf/xtensa-esp32-elf/lib/* $OUTPUTDIR/lx6/
 cp -r xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/*/* $OUTPUTDIR/lx6/
 
-cp -r $BUILDDIR/esp-idf/components/xtensa/esp32/   $OUTPUTDIR/lx6/
-#cp -r $BUILDDIR/esp-idf/components/bt/controller/lib/*.a $OUTPUTDIR/lx6/
-cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32/ $OUTPUTDIR/lx6/
-cp -r $BUILDDIR/esp-idf/components/xtensa/esp32/*.a $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/bt/controller/lib_esp32/esp32/*.a $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/esp_phy/lib/esp32/*.a             $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/esp_wifi/lib/esp32/*.a            $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/openthread/lib/esp32/*.a          $OUTPUTDIR/lx6/
+cp -r $BUILDDIR/esp-idf/components/xtensa/esp32/*.a                  $OUTPUTDIR/lx6/
 
 mkdir -p $OUTPUTDIR/esp-idf-$IDFVER/components
 cd $BUILDDIR/esp-idf/components
@@ -216,8 +217,8 @@ make -j 8 2>&1  | $PV --line-mode --size=1068 --name "make release  " >/dev/null
 find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} $OUTPUTDIR/lx6/ \;
 cp ./build/bootloader/bootloader.bin  $OUTPUTDIR/lx6
 cp ./build/partitions_singleapp.bin   $OUTPUTDIR/lx6
-cp ./build/esp32/esp32.project.ld     $OUTPUTDIR/lx6
-cp ./build/esp32/esp32_out.ld         $OUTPUTDIR/lx6
+cp ./build/esp_system/ld/memory.ld       $OUTPUTDIR/lx6
+cp ./build/esp_system/ld/sections.ld     $OUTPUTDIR/lx6
 
 # Generate OTA partition files
 echo Generating partitions_two_ota 

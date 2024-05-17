@@ -1,7 +1,18 @@
 #!/bin/sh
-[ ! -f xtensa-lx106-elf-gcc8_4_0-esp-2020r3-macos.tar.gz   ] && curl -L https://dl.espressif.com/dl/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-macos.tar.gz   --output xtensa-lx106-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
-[ ! -f xtensa-lx106-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz ] && curl -L https://dl.espressif.com/dl/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz --output xtensa-lx106-elf-gcc8_4_0-esp-2020r3-linux-i686.tar.gz
-[ ! -f xtensa-lx106-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz ] && curl -L https://dl.espressif.com/dl/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz     --output xtensa-lx106-elf-gcc8_4_0-esp-2020r3-linux-amd64.tar.gz
-[ ! -f xtensa-esp32-elf-gcc8_4_0-esp-2021r2-macos.tar.gz  ]        && curl -L https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2/xtensa-esp32-elf-gcc8_4_0-esp-2021r2-macos.tar.gz         --output xtensa-esp32-elf-gcc8_4_0-esp-2021r2-macos.tar.gz
-[ ! -f xtensa-esp32-elf-gcc8_4_0-esp-2021r2-linux-i686.tar.gz ]    && curl -L https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2/xtensa-esp32-elf-gcc8_4_0-esp-2021r2-linux-i686.tar.gz   --output xtensa-esp32-elf-gcc8_4_0-esp-2021r2-linux-i686.tar.gz
-[ ! -f xtensa-esp32-elf-gcc8_4_0-esp-2021r2-linux-amd64.tar.gz ]   && curl -L https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2/xtensa-esp32-elf-gcc8_4_0-esp-2021r2-linux-amd64.tar.gz   --output xtensa-esp32-elf-gcc8_4_0-esp-2021r2-linux-amd64.tar.gz
+
+# esp8266
+TOOLCHAIN_VER=esp2020r3
+TOOLCHAIN=xtensa-lx106-elf-gcc8_4_0-$TOOLCHAIN_VER
+DOWNLOADLINK=https://dl.espressif.com/dl/$TOOLCHAIN
+[ ! -f $TOOLCHAIN-macos.tar.gz   ]     && curl -L $DOWNLOADLINK-macos.tar.gz       --output $TOOLCHAIN-macos.tar.gz
+[ ! -f $TOOLCHAIN-linux-i686.tar.gz ]  && curl -L $DOWNLOADLINK-linux-i686.tar.gz  --output $TOOLCHAIN-linux-i686.tar.gz
+[ ! -f $TOOLCHAIN-linux-amd64.tar.gz ] && curl -L $DOWNLOADLINK-linux-amd64.tar.gz --output $TOOLCHAIN-linux-amd64.tar.gz
+
+# esp32
+TOOLCHAIN_VER=esp-2021r2
+TOOLCHAIN=xtensa-esp32-elf-gcc8_4_0-$TOOLCHAIN_VER
+DOWNLOADLINK=https://github.com/espressif/crosstool-NG/releases/download/$TOOLCHAIN_VER/$TOOLCHAIN
+[ ! -f $TOOLCHAIN-macos.tar.gz  ]        && curl -L $DOWNLOADLINK-macos.tar.gz       --output $TOOLCHAIN-macos.tar.gz
+[ ! -f $TOOLCHAIN-linux-i686.tar.gz ]    && curl -L $DOWNLOADLINK-linux-i686.tar.gz  --output $TOOLCHAIN_VER-linux-i686.tar.gz
+[ ! -f $TOOLCHAIN-linux-amd64.tar.gz ]   && curl -L $DOWNLOADLINK-linux-amd64.tar.gz --output $TOOLCHAIN_VER-linux-amd64.tar.gz
+
