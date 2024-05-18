@@ -45,7 +45,7 @@ BUILDDIR="$(pwd)"
 for sdk in 4.4.7 5.0.6 ; do
   cd "$BUILDDIR" 
   rm -rf "$BUILDDIR/esp-idf" 2>/dev/null
-  git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " --discard
+  git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " >/dev/null
   cd esp-idf
   IDF_TOOLS_PATH="$BUILDDIR/tools-$sdk"
   IDF_LIBS_PATH="$BUILDDIR/$sdk/"
@@ -94,7 +94,7 @@ for sdk in 4.4.7 5.0.6 ; do
     idf.py set-target $target >/dev/null
 
     [ -f "$BUILDDIR/sdkconfig-idf$sdk-$target.release" ] && cp "$BUILDDIR/sdkconfig-idf$sdk-$target.release" sdkconfig
-    idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " --discard
+    idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " >/dev/null
 
     find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/release/" \;
     find . -path ./build/esp-idf -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/release/" \;
@@ -102,7 +102,7 @@ for sdk in 4.4.7 5.0.6 ; do
     [ ! -f "$BUILDDIR/sdkconfig-idf$sdk-$target.release" ] && cp sdkconfig "$BUILDDIR/sdkconfig-idf$sdk-$target.release"
 
     [ -f "$BUILDDIR/sdkconfig-idf$sdk-$target.debug" ] && cp "$BUILDDIR/sdkconfig-idf$sdk-$target.release" sdkconfig
-    idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " --discard
+    idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " >/dev/null
 
     find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/debug/" \;
     find . -path ./build/esp-idf -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/debug/" \;
@@ -124,14 +124,14 @@ for sdk in 4.4.7 5.0.6 ; do
   done
 
   cd "$BUILDDIR/esp-idf/tools"
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32s6 --platform macos-arm64 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " --discard
-  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos-arm64 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " --discard
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32c6 --platform macos #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " --discard
-  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " --discard
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32c6 --platform linux-arm64 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " --discard
-  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-arm64  #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " --discard
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32c6 --platform linux-i686 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " --discard
-  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-i686 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " --discard
+  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32s6 --platform macos-arm64 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos-arm64 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32c6 --platform macos #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32c6 --platform linux-arm64 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-arm64  #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32c6 --platform linux-i686 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-i686 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
 
   for target arch arch2 in \
       esp32   aarch64-darwin macos-arm64 \
@@ -152,7 +152,8 @@ for sdk in 4.4.7 5.0.6 ; do
     if [ -s "$SOURCE" ]; then
       mkdir -p "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/tmp"
       cd "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/tmp"
-      tar zxvf "$SOURCE" 2>/dev/null
+      tar zxvf "$SOURCE" >/dev/null 2>&1
+      [ "$?" != 0 ] && xzcat "$SOURCE" | tar xvf - >/dev/null 2>&1
       cd ..
       mv tmp/*/bin .
       mv tmp/*/libexec .
@@ -196,7 +197,8 @@ for sdk in 4.4.7 5.0.6 ; do
     if [ -s "$SOURCE" ]; then
       mkdir -p "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/tmp"
       cd "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/tmp"
-      tar zxvf "$SOURCE" 2>/dev/null
+      tar zxvf "$SOURCE" >/dev/null 2>&1
+      [ "$?" != 0 ] && xzcat "$SOURCE" | tar xvf - >/dev/null 2>&1
       cd ..
       mv tmp/*/bin .
       mv tmp/*/libexec .
