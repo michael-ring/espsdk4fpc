@@ -44,7 +44,7 @@ BUILDDIR="$(pwd)"
 for sdk in 4.4.7 5.0.6; do
   cd "$BUILDDIR" 
   rm -rf "$BUILDDIR/esp-idf" 2>/dev/null
-  git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " --discard
+  git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " >/dev/null
   cd esp-idf
   IDF_TOOLS_PATH="$BUILDDIR/tools-$sdk"
   IDF_LIBS_PATH="$BUILDDIR/$sdk/"
