@@ -41,11 +41,10 @@ fi
 BUILDDIR="$(pwd)"
 
 #for sdk in 4.4.7 5.0.6 5.2.1 ; do
-#for sdk in 4.4.7 5.0.6; do
-for sdk in 4.4.7 5.0.6 ; do
+for sdk in 4.4.7 5.0.6; do
   cd "$BUILDDIR" 
   rm -rf "$BUILDDIR/esp-idf" 2>/dev/null
-  git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " >/dev/null
+  git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " --discard
   cd esp-idf
   IDF_TOOLS_PATH="$BUILDDIR/tools-$sdk"
   IDF_LIBS_PATH="$BUILDDIR/$sdk/"
@@ -78,7 +77,6 @@ for sdk in 4.4.7 5.0.6 ; do
 
     TARGET2=$(echo $target | sed "s,c.,,g")
     cd $IDF_TOOLS_PATH/tools/*$TARGET2-elf/*/*/lib/gcc/*/*/
-    pwd
     for pattern in '*.a' '*.o' ; do
       find . -type f -name "$pattern" | while read file ; do
         mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
@@ -88,6 +86,15 @@ for sdk in 4.4.7 5.0.6 ; do
       done
     done
 
+    cd $IDF_TOOLS_PATH/tools/*$TARGET2-elf/*/*/*/lib/
+    for pattern in '*.a' '*.o' ; do
+      find . -type f -name "$pattern" | while read file ; do
+        mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
+        cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
+        mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
+        cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+      done
+    done
     cd "$BUILDDIR/esp-idf/examples/get-started/hello_world"
     rm -rf build 2>/dev/null
     rm sdkconfig 2>/dev/null
@@ -228,5 +235,4 @@ for sdk in 4.4.7 5.0.6 ; do
   done
   rm -rf $BUILDDIR/esp-idf 2>/dev/null
   rm -rf $BUILDDIR/tools-$sdk 2>/dev/null
-
 done
