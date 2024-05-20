@@ -36,12 +36,21 @@ createVenv()
   fi
   . $IDF_PATH/venv/bin/activate
   python3 -m pip install --upgrade pip
-  python3 -m pip install -r $IDF_PATH/requirements.txt
-  if [ "$?" != 0 ]; then
-    echo "Setting up modules for venv failed"
-    echo "please create an issue on https://github.com/michael-ring/espsdk4fpc/issues and paste the following output:"
+  if [ -f $IDF_PATH/requirements.txt ]; then
     python3 -m pip install -r $IDF_PATH/requirements.txt
-    exit 1
+    if [ "$?" != 0 ]; then
+      echo "Setting up modules for venv failed"
+      echo "please create an issue on https://github.com/michael-ring/espsdk4fpc/issues and paste the following output:"
+      python3 -m pip install -r $IDF_PATH/requirements.txt
+      exit 1
+    fi
+  else
+    python3 -m pip install ldgen
+    if [ "$?" != 0 ]; then
+      echo "Setting up modules for venv failed"
+      echo "please create an issue on https://github.com/michael-ring/espsdk4fpc/issues and paste the following output:"
+      python3 -m pip install ldgen
+      exit 1
   fi
 }
 
