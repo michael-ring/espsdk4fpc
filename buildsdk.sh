@@ -64,7 +64,9 @@ for sdk in 4.4.7 5.0.6; do
   
   for target in $TARGETS ; do
     TARGETDIR="$target/xtensa-libs/lx6"
-    echo "$target" | grep "esp32c" >/dev/null && TARGETDIR="$target/riscv32-libs/riscv32"
+    echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="$target/riscv32-libs/lx7"
+    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="$target/riscv32-libs/lx7"
+    echo "$target" | grep "esp32c" >/dev/null && TARGETDIR="$target/riscv32-libs/rv32imc"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug"
 
@@ -75,26 +77,48 @@ for sdk in 4.4.7 5.0.6; do
       cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/"
     done
 
-    TARGET2=$(echo $target | sed "s,c.,,g")
-    cd $IDF_TOOLS_PATH/tools/*$TARGET2-elf/*/*/lib/gcc/*/*/
-    for pattern in '*.a' '*.o' ; do
-      find . -type f -name "$pattern" | while read file ; do
-        mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
-        cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
-        mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
-        cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+    if [ "$target" = "esp32c3" -o "$target" = "esp32c6" ]; then
+      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/lib/gcc/riscv32-esp-elf/*/rv32imc
+      for pattern in '*.a' '*.o' ; do
+        find . -type f -name "$pattern" | while read file ; do
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+        done
       done
-    done
 
-    cd $IDF_TOOLS_PATH/tools/*$TARGET2-elf/*/*/*/lib/
-    for pattern in '*.a' '*.o' ; do
-      find . -type f -name "$pattern" | while read file ; do
-        mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
-        cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
-        mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
-        cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/*/lib/rv32imc
+      for pattern in '*.a' '*.o' ; do
+        find . -type f -name "$pattern" | while read file ; do
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+        done
       done
-    done
+    else
+      cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/lib/gcc/*/*/
+      for pattern in '*.a' '*.o' ; do
+        find . -type f -name "$pattern" | while read file ; do
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+        done
+      done
+
+      cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/*/lib/
+      for pattern in '*.a' '*.o' ; do
+        find . -type f -name "$pattern" | while read file ; do
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+        done
+      done
+    fi
+
     cd "$BUILDDIR/esp-idf/examples/get-started/hello_world"
     rm -rf build 2>/dev/null
     rm sdkconfig 2>/dev/null
@@ -143,15 +167,15 @@ for sdk in 4.4.7 5.0.6; do
   for target arch arch2 in \
       esp32   aarch64-darwin macos-arm64 \
       esp32   x86_64-darwin  macos \
-      esp32   amd64-linux    linux-arm64 \
+      esp32   amd64-linux    linux-amd64 \
       esp32   i686-linux     linux-i686 \
       esp32s2 aarch64-darwin macos-arm64 \
       esp32s2 x86_64-darwin  macos \
-      esp32s2 amd64-linux    linux-arm64 \
+      esp32s2 amd64-linux    linux-amd64 \
       esp32s2 i686-linux     linux-i686 \
       esp32s3 aarch64-darwin macos-arm64 \
       esp32s3 x86_64-darwin  macos \
-      esp32s3 amd64-linux    linux-arm64 \
+      esp32s3 amd64-linux    linux-amd64 \
       esp32s3 i686-linux     linux-i686
   do
     SOURCE="$(ls $IDF_TOOLS_PATH/dist/xtensa-$target-elf-gcc*-$arch2.tar.?z)"
@@ -192,11 +216,11 @@ for sdk in 4.4.7 5.0.6; do
   for target arch arch2 in \
       esp32c3 aarch64-darwin macos-arm64 \
       esp32c3 x86_64-darwin  macos \
-      esp32c3 amd64-linux    linux-arm64 \
+      esp32c3 amd64-linux    linux-amd64 \
       esp32c3 i686-linux     linux-i686 \
       esp32c6 aarch64-darwin macos-arm64 \
       esp32c6 x86_64-darwin  macos \
-      esp32c6 amd64-linux    linux-arm64 \
+      esp32c6 amd64-linux    linux-amd64 \
       esp32c6 i686-linux     linux-i686
   do
     SOURCE="$(ls $IDF_TOOLS_PATH/dist/riscv32-esp-elf-gcc*-$arch2.tar.?z)"
@@ -233,6 +257,6 @@ for sdk in 4.4.7 5.0.6; do
       done
     fi
   done
-  rm -rf $BUILDDIR/esp-idf 2>/dev/null
-  rm -rf $BUILDDIR/tools-$sdk 2>/dev/null
+  #rm -rf $BUILDDIR/esp-idf 2>/dev/null
+  #rm -rf $BUILDDIR/tools-$sdk 2>/dev/null
 done
