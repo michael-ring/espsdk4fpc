@@ -44,11 +44,11 @@ createVenv()
       exit 1
     fi
   else
-    python3 -m pip install esptool
+    python3 -m pip install -r $IDF_PATH/tools/requirements/requirements.core.txt 
     if [ "$?" != 0 ]; then
       echo "Setting up modules for venv failed"
       echo "please create an issue on https://github.com/michael-ring/espsdk4fpc/issues and paste the following output:"
-      python3 -m pip install esptool
+      python3 -m pip install -r $IDF_PATH/tools/requirements/requirements.core.txt
       exit 1
     fi
   fi
