@@ -73,48 +73,40 @@ for sdk in 4.4.7 5.0.6; do
     cd "$BUILDDIR/esp-idf/components"
 
     find . -name "*.a" | grep "/$target/" | while read file ; do
-      cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/"
-      cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/"
+      cp $file "$IDF_LIBS_PATH/$TARGETDIR/"
+      cp $file "$IDF_LIBS_PATH/$TARGETDIR/"
     done
 
     if [ "$target" = "esp32c3" -o "$target" = "esp32c6" ]; then
       cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/lib/gcc/riscv32-esp-elf/*/rv32imc
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
-          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
-          cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
-          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
-          cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/$file"
         done
       done
 
       cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/*/lib/rv32imc
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
-          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
-          cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
-          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
-          cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/$file"
         done
       done
     else
       cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/lib/gcc/*/*/
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
-          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
-          cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
-          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
-          cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/$file"
         done
       done
 
       cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/*/lib/
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
-          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/release/$(dirname $file)" 2>/dev/null
-          cp $file "$IDF_LIBS_PATH/$TARGETDIR/release/$file"
-          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/debug/$(dirname $file)" 2>/dev/null
-          cp $file "$IDF_LIBS_PATH/$TARGETDIR/debug/$file"
+          mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
+          cp $file "$IDF_LIBS_PATH/$TARGETDIR/$file"
         done
       done
     fi
@@ -126,6 +118,9 @@ for sdk in 4.4.7 5.0.6; do
 
     [ -f "$BUILDDIR/sdkconfig-idf$sdk-$target.release" ] && cp "$BUILDDIR/sdkconfig-idf$sdk-$target.release" sdkconfig
     idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " >/dev/null
+
+    mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release/"
+    mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug/"
 
     find . -path ./build/esp-idf -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/release/" \;
     find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/release/" \;
@@ -155,14 +150,10 @@ for sdk in 4.4.7 5.0.6; do
   done
 
   cd "$BUILDDIR/esp-idf/tools"
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32s6 --platform macos-arm64 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos-arm64 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32c6 --platform macos #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32c6 --platform linux-arm64 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-arm64  #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3,esp32c6 --platform linux-i686 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  [ "$?" != 0 ] && python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-i686 #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos-arm64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos       xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-amd64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-i686  xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
 
   for target arch arch2 in \
       esp32   aarch64-darwin macos-arm64 \
@@ -207,9 +198,15 @@ for sdk in 4.4.7 5.0.6; do
       mv "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/tools/ldgen/ldgen.py"  "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/tools/ldgen/ldgen-orig.py"
       cp "$BUILDDIR/ldgen.py" "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/tools/ldgen/"
 
-      for file in CMakeLists.txt Kconfig LICENSE README.md requirements.txt sdkconfig.rename ; do
-        cp "$BUILDDIR/esp-idf/$file" "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/" 2>/dev/null
+      for file in CMakeLists.txt Kconfig LICENSE README.md sdkconfig.rename ; do
+        cp "$BUILDDIR/esp-idf/$file" "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/"
       done
+      if [ -f "$BUILDDIR/esp-idf/requirements.txt" ]; then
+       cat  "$BUILDDIR/esp-idf/requirements.txt" | grep -v "gdbgui" | grep -v "pygdbmi" | grep -v "python-socketio" | grep -v "jinja2" | grep  -v "itsdangerous" | grep -v "pygdbmi" | grep -v "construct" >"$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/requirements.txt"
+      fi
+      if [ -f "$BUILDDIR/esp-idf/tools/requirements/requirements.core.txt" ]; then
+       cat  "$BUILDDIR/esp-idf/tools/requirements/requirements.core.txt"  >"$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/requirements.txt"
+      fi
     fi
   done
 
