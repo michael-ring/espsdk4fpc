@@ -71,10 +71,11 @@ for sdk in 4.4.7 5.0.6; do
   . ./export.sh >/dev/null
   
   for target in $TARGETS ; do
-    TARGETDIR="$target/xtensa-libs/lx6"
-    echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="$target/xtensa-libs/lx7"
-    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="$target/xtensa-libs/lx7"
-    echo "$target" | grep "esp32c" >/dev/null && TARGETDIR="$target/riscv32-libs/rv32imc"
+    TARGETDIR="xtensa-libs/lx6/$target"
+    echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="xtensa-libs/lx7/$target"
+    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="xtensa-libs/lx7/$target"
+    echo "$target" | grep "esp32c3" >/dev/null && TARGETDIR="riscv32-libs/rv32imc/$target"
+    echo "$target" | grep "esp32c6" >/dev/null && TARGETDIR="riscv32-libs/rv32imac/$target"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug"
 
@@ -180,30 +181,33 @@ for sdk in 4.4.7 5.0.6; do
     SOURCE="$(ls $IDF_TOOLS_PATH/dist/xtensa-$target-elf-gcc*-$arch2.tar.?z)"
     echo $SOURCE
     if [ -s "$SOURCE" ]; then
-      mkdir -p "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/tmp"
-      cd "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/tmp"
+      mkdir -p "$BUILDDIR/$sdk/xtensa-binutils-$arch/tmp"
+      cd "$BUILDDIR/$sdk/xtensa-binutils-$arch/tmp"
       tar zxvf "$SOURCE" >/dev/null 2>&1
       [ "$?" != 0 ] && xzcat "$SOURCE" | tar xvf - >/dev/null 2>&1
       cd ..
-      mv tmp/*/bin .
-      mv tmp/*/libexec .
+      mkdir bin 2>/dev/null
+      mv tmp/*/bin/*as bin/
+      mv tmp/*/bin/*ld bin/
+      mv tmp/*/bin/*objdump bin/
+      mv tmp/*/bin/*objcopy bin/
       rm -rf tmp
 
-      mkdir -p $BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/tools/ 
-      cp -r $BUILDDIR/esp-idf/tools $BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/
+      mkdir -p $BUILDDIR/$sdk/xtensa-binutils-$arch/esp-idf-$sdk/tools/ 
+      cp -r $BUILDDIR/esp-idf/tools $BUILDDIR/$sdk/xtensa-binutils-$arch/esp-idf-$sdk/
 
       cd "$BUILDDIR/esp-idf/components"
       for pattern in '[kK]config*' '*.lf' '*.info' '*.ld' '*.in' ; do
         find . -type f -name "$pattern" | while read file ; do
-          mkdir -p  "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/components/$(dirname $file)" 2>/dev/null
-          cp $file "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/components/$file"
+          mkdir -p  "$BUILDDIR/$sdk/xtensa-binutils-$arch/esp-idf-$sdk/components/$(dirname $file)" 2>/dev/null
+          cp $file "$BUILDDIR/$sdk/xtensa-binutils-$arch/esp-idf-$sdk/components/$file"
         done
       done
-      cp -r esptool_py  "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/components/"
-      cp "$BUILDDIR/esptool.py" "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/components/esptool_py/esptool/esptool.py"
+      cp -r esptool_py  "$BUILDDIR/$sdk/xtensa-binutils-$arch/esp-idf-$sdk/components/"
+      cp "$BUILDDIR/esptool.py" "$BUILDDIR/$sdk/xtensa-binutils-$arch/esp-idf-$sdk/components/esptool_py/esptool/esptool.py"
 
       for file in CMakeLists.txt Kconfig LICENSE README.md sdkconfig.rename ; do
-        cp "$BUILDDIR/esp-idf/$file" "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/"
+        cp "$BUILDDIR/esp-idf/$file" "$BUILDDIR/$sdk/xtensa-binutils-$arch/esp-idf-$sdk/"
       done
     fi
   done
@@ -221,34 +225,33 @@ for sdk in 4.4.7 5.0.6; do
     SOURCE="$(ls $IDF_TOOLS_PATH/dist/riscv32-esp-elf-gcc*-$arch2.tar.?z)"
     echo $SOURCE
     if [ -s "$SOURCE" ]; then
-      mkdir -p "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/tmp"
-      cd "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/tmp"
+      mkdir -p "$BUILDDIR/$sdk/riscv32-binutils-$arch/tmp"
+      cd "$BUILDDIR/$sdk/riscv32-binutils-$arch/tmp"
       tar zxvf "$SOURCE" >/dev/null 2>&1
       [ "$?" != 0 ] && xzcat "$SOURCE" | tar xvf - >/dev/null 2>&1
       cd ..
-      mv tmp/*/bin .
-      mv tmp/*/libexec .
+      mkdir bin 2>/dev/null
+      mv tmp/*/bin/*as bin/
+      mv tmp/*/bin/*ld bin/
+      mv tmp/*/bin/*objdump bin/
+      mv tmp/*/bin/*objcopy bin/
       rm -rf tmp 
 
-      mkdir -p $BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/tools/ 
-      cp -r $BUILDDIR/esp-idf/tools $BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/
+      mkdir -p $BUILDDIR/$sdk/riscv32-binutils-$arch/esp-idf-$sdk/tools/ 
+      cp -r $BUILDDIR/esp-idf/tools $BUILDDIR/$sdk/riscv32-binutils-$arch/esp-idf-$sdk/
 
       cd "$BUILDDIR/esp-idf/components"
       for pattern in '[kK]config*' '*.lf' '*.info' '*.ld' '*.in' ; do
         find . -type f -name "$pattern" | while read file ; do
-          mkdir -p  "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/components/$(dirname $file)" 2>/dev/null
-          cp $file "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/components/$file"
+          mkdir -p  "$BUILDDIR/$sdk/riscv32-binutils-$arch/esp-idf-$sdk/components/$(dirname $file)" 2>/dev/null
+          cp $file "$BUILDDIR/$sdk/riscv32-binutils-$arch/esp-idf-$sdk/components/$file"
         done
       done
-      cp -r esptool_py  "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/components/"
-      mv "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/components/esptool_py/esptool/esptool.py" "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/components/esptool_py/esptool/esptool-orig.py"
-      cp "$BUILDDIR/esptool.py" "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/components/esptool_py/esptool/esptool.py"
+      cp -r esptool_py  "$BUILDDIR/$sdk/riscv32-binutils-$arch/esp-idf-$sdk/components/"
+      cp "$BUILDDIR/esptool.py" "$BUILDDIR/$sdk/riscv32-binutils-$arch/esp-idf-$sdk/components/esptool_py/esptool/esptool.py"
 
-      mv "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/tools/ldgen/ldgen.py"  "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/tools/ldgen/ldgen-orig.py"
-      cp "$BUILDDIR/ldgen.py" "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/tools/ldgen/"
-
-      for file in CMakeLists.txt Kconfig LICENSE README.md requirements.txt sdkconfig.rename ; do
-        cp "$BUILDDIR/esp-idf/$file" "$BUILDDIR/$sdk/$target/riscv32-binutils-$arch/esp-idf-$sdk/" 2>/dev/null
+      for file in CMakeLists.txt Kconfig LICENSE README.md sdkconfig.rename ; do
+        cp "$BUILDDIR/esp-idf/$file" "$BUILDDIR/$sdk/riscv32-binutils-$arch/esp-idf-$sdk/" 2>/dev/null
       done
     fi
   done
