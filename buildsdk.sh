@@ -15,14 +15,14 @@ if [ "$?" != 0 ]; then
   echo "on redhat like linux: sudo dnf install python3 python3-pip python3-venv"
   exit 1
 fi
-python3 -c 'help("modules")' 2>/dev/null | grep -w pip >/dev/null
+pip3 -h 2>/dev/null >/dev/null
 if [ "$?" != 0 ]; then
-  echo "python3 module 'pip' is not installed, please fix"
+  echo "python3 module 'pip3' is not installed, please fix"
   echo "on debian like linux: sudo apt-get install python3-pip"
   echo "on redhat like linux: sudo dnf install python3-pip"
   exit 1
 fi
-python3 -c 'help("modules")' 2>/dev/null | grep -w venv >/dev/null
+python3 -m venv -h 2>/dev/null >/dev/null
 if [ "$?" != 0 ]; then
   echo "python3 module 'venv' is not installed, please fix"
   echo "on debian like linux: sudo apt-get install python3-venv"
@@ -30,7 +30,15 @@ if [ "$?" != 0 ]; then
   exit 1
 fi
 
-python3 -c 'help("modules")' 2>/dev/null | grep -w wheel >/dev/null
+python3 -m virtualenv -h 2>/dev/null >/dev/null
+if [ "$?" != 0 ]; then
+  echo "python3 module 'virtualenv' is not installed, please fix"
+  echo "on debian like linux: sudo apt-get install python3-virtualenv"
+  echo "on redhat like linux: sudo dnf install python3-virtualenv"
+  exit 1
+fi
+
+python3 -m wheel -h 2>/dev/null >/dev/null
 if [ "$?" != 0 ]; then
   echo "python3 module 'wheel' is not installed, please fix"
   echo "on debian like linux: sudo apt-get install python3-wheel"
@@ -192,21 +200,11 @@ for sdk in 4.4.7 5.0.6; do
         done
       done
       cp -r esptool_py  "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/components/"
-      mv "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/components/esptool_py/esptool/esptool.py" "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/components/esptool_py/esptool/esptool-orig.py"
       cp "$BUILDDIR/esptool.py" "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/components/esptool_py/esptool/esptool.py"
-
-      mv "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/tools/ldgen/ldgen.py"  "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/tools/ldgen/ldgen-orig.py"
-      cp "$BUILDDIR/ldgen.py" "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/tools/ldgen/"
 
       for file in CMakeLists.txt Kconfig LICENSE README.md sdkconfig.rename ; do
         cp "$BUILDDIR/esp-idf/$file" "$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/"
       done
-      if [ -f "$BUILDDIR/esp-idf/requirements.txt" ]; then
-       cat  "$BUILDDIR/esp-idf/requirements.txt" | grep -v "gdbgui" | grep -v "pygdbmi" | grep -v "python-socketio" | grep -v "jinja2" | grep  -v "itsdangerous" | grep -v "pygdbmi" | grep -v "construct" >"$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/requirements.txt"
-      fi
-      if [ -f "$BUILDDIR/esp-idf/tools/requirements/requirements.core.txt" ]; then
-       cat  "$BUILDDIR/esp-idf/tools/requirements/requirements.core.txt"  >"$BUILDDIR/$sdk/$target/xtensa-binutils-$arch/esp-idf-$sdk/requirements.txt"
-      fi
     fi
   done
 
