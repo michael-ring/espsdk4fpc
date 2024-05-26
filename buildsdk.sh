@@ -71,11 +71,11 @@ for sdk in 4.4.7 5.0.6; do
   . ./export.sh >/dev/null
   
   for target in $TARGETS ; do
-    TARGETDIR="xtensa-libs/lx6/$target"
-    echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="xtensa-libs/lx7/$target"
-    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="xtensa-libs/lx7/$target"
-    echo "$target" | grep "esp32c3" >/dev/null && TARGETDIR="riscv32-libs/rv32imc/$target"
-    echo "$target" | grep "esp32c6" >/dev/null && TARGETDIR="riscv32-libs/rv32imac/$target"
+    TARGETDIR="xtensa-libs/esp-idf-$sdk/libs/lx6/$target"
+    echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="xtensa-libs/esp-idf-$sdk/libs/lx7/$target"
+    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="xtensa-libs/esp-idf-$sdk/libs/lx7/$target"
+    echo "$target" | grep "esp32c3" >/dev/null && TARGETDIR="riscv32-libs/esp-idf-$sdk/libs/rv32imc/$target"
+    echo "$target" | grep "esp32c6" >/dev/null && TARGETDIR="riscv32-libs/esp-idf-$sdk/libs/rv32imac/$target"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug"
 
@@ -181,8 +181,8 @@ for sdk in 4.4.7 5.0.6; do
     SOURCE="$(ls $IDF_TOOLS_PATH/dist/xtensa-$target-elf-gcc*-$arch2.tar.?z)"
     echo $SOURCE
     if [ -s "$SOURCE" ]; then
-      mkdir -p "$BUILDDIR/$sdk/xtensa-binutils-$arch/tmp"
-      cd "$BUILDDIR/$sdk/xtensa-binutils-$arch/tmp"
+      mkdir -p "$BUILDDIR/$sdk/xtensa-binutils-$arch/esp-idf-$sdk/tmp"
+      cd "$BUILDDIR/$sdk/xtensa-binutils-$arch/esp-idf-$sdk/tmp"
       tar zxvf "$SOURCE" >/dev/null 2>&1
       [ "$?" != 0 ] && xzcat "$SOURCE" | tar xvf - >/dev/null 2>&1
       cd ..
@@ -225,8 +225,8 @@ for sdk in 4.4.7 5.0.6; do
     SOURCE="$(ls $IDF_TOOLS_PATH/dist/riscv32-esp-elf-gcc*-$arch2.tar.?z)"
     echo $SOURCE
     if [ -s "$SOURCE" ]; then
-      mkdir -p "$BUILDDIR/$sdk/riscv32-binutils-$arch/tmp"
-      cd "$BUILDDIR/$sdk/riscv32-binutils-$arch/tmp"
+      mkdir -p "$BUILDDIR/$sdk/riscv32-binutils-$arch/esp-idf-$sdk/tmp"
+      cd "$BUILDDIR/$sdk/riscv32-binutils-$arch/esp-idf-$sdk/tmp"
       tar zxvf "$SOURCE" >/dev/null 2>&1
       [ "$?" != 0 ] && xzcat "$SOURCE" | tar xvf - >/dev/null 2>&1
       cd ..
