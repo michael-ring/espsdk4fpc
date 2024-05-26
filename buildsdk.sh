@@ -64,8 +64,8 @@ for sdk in 4.4.7 5.0.6; do
   
   for target in $TARGETS ; do
     TARGETDIR="$target/xtensa-libs/lx6"
-    echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="$target/riscv32-libs/lx7"
-    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="$target/riscv32-libs/lx7"
+    echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="$target/xtensa-libs/lx7"
+    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="$target/xtensa-libs/lx7"
     echo "$target" | grep "esp32c" >/dev/null && TARGETDIR="$target/riscv32-libs/rv32imc"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug"
