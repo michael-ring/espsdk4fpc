@@ -87,7 +87,7 @@ for sdk in 4.4.7 5.0.6; do
     done
 
     if [ "$target" = "esp32c3" -o "$target" = "esp32c6" ]; then
-      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/lib/gcc/riscv32-esp-elf/*/$subarch
+      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/lib/gcc/riscv32-esp-elf/*/$subarch*
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
           mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
@@ -95,7 +95,7 @@ for sdk in 4.4.7 5.0.6; do
         done
       done
 
-      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/*/lib/$subarch
+      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/*/lib/$subarch*
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
           mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
