@@ -74,8 +74,8 @@ for sdk in 4.4.7 5.0.6; do
     TARGETDIR="xtensa-libs/esp-idf-$sdk/libs/lx6/$target"
     echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="xtensa-libs/esp-idf-$sdk/libs/lx7/$target"
     echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="xtensa-libs/esp-idf-$sdk/libs/lx7/$target"
-    echo "$target" | grep "esp32c3" >/dev/null && TARGETDIR="riscv32-libs/esp-idf-$sdk/libs/rv32imc/$target"
-    echo "$target" | grep "esp32c6" >/dev/null && TARGETDIR="riscv32-libs/esp-idf-$sdk/libs/rv32imac/$target"
+    echo "$target" | grep "esp32c3" >/dev/null && TARGETDIR="riscv32-libs/esp-idf-$sdk/libs/rv32imc/$target" && subarch="rv32imc"
+    echo "$target" | grep "esp32c6" >/dev/null && TARGETDIR="riscv32-libs/esp-idf-$sdk/libs/rv32imac/$target" && subarch="rv32imac"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug"
 
@@ -87,7 +87,7 @@ for sdk in 4.4.7 5.0.6; do
     done
 
     if [ "$target" = "esp32c3" -o "$target" = "esp32c6" ]; then
-      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/lib/gcc/riscv32-esp-elf/*/rv32imc
+      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/lib/gcc/riscv32-esp-elf/*/$subarch
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
           mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
@@ -95,7 +95,7 @@ for sdk in 4.4.7 5.0.6; do
         done
       done
 
-      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/*/lib/rv32imc
+      cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/*/lib/$subarch
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
           mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
