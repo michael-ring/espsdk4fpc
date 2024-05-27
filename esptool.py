@@ -87,7 +87,7 @@ if 'VIRTUAL_ENV' not in os.environ:
   except Exception as e:
     installVenv()
   os.environ['VIRTUAL_ENV'] = str(venv)
-  os.execv(str(venvPython),[__file__] + [__file__] + sys.argv[1:])
+  os.execv(str(venvPython),[str(venvPython)] + [__file__] + sys.argv[1:])
 else:
   print("Args:")
   print(sys.argv)
@@ -97,4 +97,4 @@ else:
   realesptool=Path(sys.executable).parent / 'esptool.py'
   if not realesptool.exists():
     installRequirements()
-  os.execv(str(sys.executable),[str(realesptool)] + [str(realesptool)] + sys.argv[1:])
+  os.execv(str(sys.executable),[str(sys.executable)] + [str(realesptool)] + sys.argv[1:])
