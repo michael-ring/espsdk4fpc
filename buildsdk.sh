@@ -51,8 +51,8 @@ BUILDDIR="$(pwd)"
 #for sdk in 4.4.7 5.0.6 5.2.1 ; do
 for sdk in 5.2.1; do
   cd "$BUILDDIR" 
-  rm -rf "$BUILDDIR/esp-idf" 2>/dev/null
-  git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " >/dev/null
+  #rm -rf "$BUILDDIR/esp-idf" 2>/dev/null
+  #git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " >/dev/null
   cd esp-idf
   IDF_TOOLS_PATH="$BUILDDIR/tools-$sdk"
   IDF_LIBS_PATH="$BUILDDIR/esp-idf-$sdk/"
@@ -70,8 +70,8 @@ for sdk in 5.2.1; do
     ./install.sh esp32,esp32s2,esp32c3,esp32s3,esp32c2 >/dev/null
   fi
   if [ $sdk = 5.2.1 ]; then
-    TARGETS=(esp32 esp32s2 esp32c3 esp32s3 esp32c2 esp32c6 esp32h2)
-    ./install.sh esp32,esp32s2,esp32c3,esp32s3,esp32c2,esp32c6,esp32h2 >/dev/null
+    TARGETS=(esp32 esp32s2 esp32s3 esp32c2 esp32c3 esp32c6)
+    ./install.sh esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 >/dev/null
   fi
 
   . ./export.sh >/dev/null
@@ -80,6 +80,7 @@ for sdk in 5.2.1; do
     TARGETDIR="libs/lx6/$target"
     echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="libs/lx7/$target"
     echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="libs/lx7/$target"
+    echo "$target" | grep "esp32c2" >/dev/null && TARGETDIR="libs/rv32imc/$target" && subarch="rv32imc"
     echo "$target" | grep "esp32c3" >/dev/null && TARGETDIR="libs/rv32imc/$target" && subarch="rv32imc"
     echo "$target" | grep "esp32c6" >/dev/null && TARGETDIR="libs/rv32imac/$target" && subarch="rv32imac"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release"
@@ -92,7 +93,7 @@ for sdk in 5.2.1; do
       cp $file "$IDF_LIBS_PATH/$TARGETDIR/"
     done
 
-    if [ "$target" = "esp32c3" -o "$target" = "esp32c2" -o "$target" = "esp32c6" ]; then
+    if [ "$target" = "esp32c2" -o "$target" = "esp32c3" -o "$target" = "esp32c6" ]; then
       cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/lib/gcc/riscv32-esp-elf/*/$subarch*
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
@@ -109,7 +110,11 @@ for sdk in 5.2.1; do
         done
       done
     else
-      cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/lib/gcc/*/*/
+      if [ $sdk = 5.2.1 ]; then
+        cd $IDF_TOOLS_PATH/tools/xtensa-esp-elf/*/*/lib/gcc/*/*/
+      else
+        cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/lib/gcc/*/*/
+      fi
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
           mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
@@ -117,7 +122,11 @@ for sdk in 5.2.1; do
         done
       done
 
-      cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/*/lib/
+      if [ $sdk = 5.2.1 ]; then
+        cd $IDF_TOOLS_PATH/tools/xtensa-esp-elf/*/*/*/lib/
+      else
+        cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/*/lib/
+      fi
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
           mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
@@ -170,12 +179,23 @@ for sdk in 5.2.1; do
   done
   
   cd "$BUILDDIR/esp-idf/tools"
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos-arm64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform macos       xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-amd64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-  python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c3 --platform linux-i686  xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-
+  if [ $sdk = 5.2.1 ]; then
+    python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform macos-arm64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+    python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform macos       xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+    python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform linux-amd64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+    python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform linux-i686  xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  else
+    python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3 --platform macos-arm64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+    python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3 --platform macos       xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+    python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3 --platform linux-amd64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+    python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3 --platform linux-i686  xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  fi
+  rm $IDF_TOOLS_PATH/dist/*-gdb-* >/dev/null 2>&1
   for target arch arch2 in \
+      esp     aarch64-darwin aarch64-apple-darwin \
+      esp     x86_64-darwin  x86_64-apple-darwin \
+      esp     x86_64-linux   x86_64-linux-gnu \
+      esp     i686-linux     i586-linux-gnu \
       esp32   aarch64-darwin macos-arm64 \
       esp32   x86_64-darwin  macos \
       esp32   x86_64-linux   linux-amd64 \
@@ -190,7 +210,12 @@ for sdk in 5.2.1; do
       esp32s3 i686-linux     linux-i686
   do
     BINTARGETDIR="$BUILDDIR/$arch/esp-idf-$sdk"
-    SOURCE="$(ls $IDF_TOOLS_PATH/dist/xtensa-$target-elf-gcc*-$arch2.tar.?z)"
+
+    if [ $sdk = 5.2.1 ]; then
+      SOURCE="$(ls $IDF_TOOLS_PATH/dist/xtensa-esp-elf-*-$arch2.tar.?z)" >/dev/null 2>&1
+    else
+      SOURCE="$(ls $IDF_TOOLS_PATH/dist/xtensa-$target-elf-gcc*-$arch2.tar.?z)"  >/dev/null 2>&1
+    fi
     if [ -s "$SOURCE" ]; then
       mkdir -p "$BINTARGETDIR/tmp"
       cd "$BINTARGETDIR/tmp"
@@ -224,6 +249,14 @@ for sdk in 5.2.1; do
   done
 
   for target arch arch2 in \
+      esp     aarch64-darwin aarch64-apple-darwin \
+      esp     x86_64-darwin  x86_64-apple-darwin \
+      esp     x86_64-linux   x86_64-linux-gnu \
+      esp     i686-linux     i586-linux-gnu \
+      esp32c2 aarch64-darwin macos-arm64 \
+      esp32c2 x86_64-darwin  macos \
+      esp32c2 x86_64-linux   linux-amd64 \
+      esp32c2 i686-linux     linux-i686 \
       esp32c3 aarch64-darwin macos-arm64 \
       esp32c3 x86_64-darwin  macos \
       esp32c3 x86_64-linux   linux-amd64 \
@@ -234,7 +267,11 @@ for sdk in 5.2.1; do
       esp32c6 i686-linux     linux-i686
   do
     BINTARGETDIR="$BUILDDIR/$arch/esp-idf-$sdk"
-    SOURCE="$(ls $IDF_TOOLS_PATH/dist/riscv32-esp-elf-gcc*-$arch2.tar.?z)"
+    if [ $sdk = 5.2.1 ]; then
+      SOURCE="$(ls $IDF_TOOLS_PATH/dist/riscv32-esp-elf-*-$arch2.tar.?z )"  >/dev/null 2>&1
+    else
+      SOURCE="$(ls $IDF_TOOLS_PATH/dist/riscv32-esp-elf-gcc*-$arch2.tar.?z )"  >/dev/null 2>&1
+    fi
     echo $SOURCE
     if [ -s "$SOURCE" ]; then
       mkdir -p "$BINTARGETDIR/tmp"
