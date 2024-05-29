@@ -92,7 +92,7 @@ for sdk in 5.2.1; do
       cp $file "$IDF_LIBS_PATH/$TARGETDIR/"
     done
 
-    if [ "$target" = "esp32c3" -o "$target" = "esp32c2" -o "$target" = "esp32c6" ]; then
+    if [ "$target" = "esp32c3" -o "$target" = "esp32c2" -o "$target" = "esp32c6" -o "$target" = "esp32h2" ]; then
       cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/lib/gcc/riscv32-esp-elf/*/$subarch*
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
@@ -109,7 +109,11 @@ for sdk in 5.2.1; do
         done
       done
     else
-      cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/lib/gcc/*/*/
+      if [ $sdk = 5.2.1 ]; then
+        cd $IDF_TOOLS_PATH/tools/xtensa-esp-elf/*/*/lib/gcc/*/*/$target/
+      else
+        cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/lib/gcc/*/*/
+      fi
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
           mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
@@ -117,7 +121,11 @@ for sdk in 5.2.1; do
         done
       done
 
-      cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/*/lib/
+      if [ $sdk = 5.2.1 ]; then
+        cd $IDF_TOOLS_PATH/tools/xtensa-esp-elf/*/*/*/lib/$target/
+      else
+        cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/*/lib/
+      fi
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
           mkdir -p  "$IDF_LIBS_PATH/$TARGETDIR/$(dirname $file)" 2>/dev/null
