@@ -157,7 +157,6 @@ for sdk in 4.4.7 5.0.6; do
     cp ./build/ota_data_initial.bin   "$IDF_LIBS_PATH/$TARGETDIR"
 
     for arch in aarch64-darwin x86_64-darwin x86_64-linux i686-linux ; do
-      rm -rf "$BUILDDIR/$arch/esp-idf-$sdk" 2>/dev/null
       mkdir -p "$BUILDDIR/$arch/"
       cp -r "$BUILDDIR/esp-idf-$sdk" "$BUILDDIR/$arch/"
     done
@@ -186,7 +185,6 @@ for sdk in 4.4.7 5.0.6; do
   do
     BINTARGETDIR="$BUILDDIR/$arch/esp-idf-$sdk"
     SOURCE="$(ls $IDF_TOOLS_PATH/dist/xtensa-$target-elf-gcc*-$arch2.tar.?z)"
-    echo $SOURCE
     if [ -s "$SOURCE" ]; then
       mkdir -p "$BINTARGETDIR/tmp"
       cd "$BINTARGETDIR/tmp"
