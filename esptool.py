@@ -89,8 +89,6 @@ if 'VIRTUAL_ENV' not in os.environ:
   os.environ['VIRTUAL_ENV'] = str(venv)
   os.execv(str(venvPython),[str(venvPython)] + [__file__] + sys.argv[1:])
 else:
-  print("Args:")
-  print(sys.argv)
   activate_this_file = sys.executable.replace("python3","activate_this.py")
   exec(open(activate_this_file).read(), {'__file__': activate_this_file})
 
