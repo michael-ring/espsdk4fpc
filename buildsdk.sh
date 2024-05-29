@@ -144,7 +144,6 @@ for sdk in 4.4.7 5.0.6; do
 
     cp ./build/bootloader/bootloader.bin  "$IDF_LIBS_PATH/$TARGETDIR"
     cp ./build/partition_table/partition-table.bin "$IDF_LIBS_PATH/$TARGETDIR"
-    #cp ./build/partitions_singleapp.bin   "$IDF_LIBS_PATH/$TARGETDIR"
     cp ./build/esp-idf/esp_system/ld/memory.ld    "$IDF_LIBS_PATH/$TARGETDIR"
     cp ./build/esp-idf/esp_system/ld/sections.ld  "$IDF_LIBS_PATH/$TARGETDIR"
 
@@ -159,8 +158,8 @@ for sdk in 4.4.7 5.0.6; do
 
     for arch in aarch64-darwin x86_64-darwin x86_64-linux i686-linux ; do
       rm -rf "$BUILDDIR/$arch/esp-idf-$sdk" 2>/dev/null
-      mkdir -p "$BUILDDIR/$arch/esp-idf-$sdk"
-      cp -r "$BUILDDIR/esp-idf-$sdk" "$BUILDDIR/$arch/esp-idf-$sdk"
+      mkdir -p "$BUILDDIR/$arch/"
+      cp -r "$BUILDDIR/esp-idf-$sdk" "$BUILDDIR/$arch/"
     done
     rm -rf "$BUILDDIR/esp-idf-$sdk" 2>/dev/null
   done
