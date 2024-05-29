@@ -49,7 +49,7 @@ fi
 BUILDDIR="$(pwd)"
 
 #for sdk in 4.4.7 5.0.6 5.2.1 ; do
-for sdk in 4.4.7 5.0.6; do
+for sdk in 5.2.1; do
   cd "$BUILDDIR" 
   rm -rf "$BUILDDIR/esp-idf" 2>/dev/null
   git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " >/dev/null
@@ -61,11 +61,17 @@ for sdk in 4.4.7 5.0.6; do
   mkdir -p "$IDF_TOOLS_PATH"
   mkdir -p "$IDF_LIBS_PATH"
   export "IDF_TOOLS_PATH"
-  TARGETS=(esp32 esp32s2 esp32s3 esp32c3 esp32c6)
-  ./install.sh esp32,esp32s2,esp32s3,esp32c3,esp32c6 >/dev/null
-  if [ "$?" != "0" ]; then
-    TARGETS=(esp32 esp32s2 esp32s3 esp32c3)
-    ./install.sh esp32,esp32s2,esp32s3,esp32c3 >/dev/null
+  if [ $sdk = 4.4.7 ]; then
+    TARGETS=(esp32 esp32s2 esp32c3 esp32s3)
+    ./install.sh esp32,esp32s2,esp32c3,esp32s3 >/dev/null
+  fi
+  if [ $sdk = 5.0.6 ]; then
+    TARGETS=(esp32 esp32s2 esp32c3 esp32s3 esp32c2)
+    ./install.sh esp32,esp32s2,esp32c3,esp32s3,esp32c2 >/dev/null
+  fi
+  if [ $sdk = 5.2.1 ]; then
+    TARGETS=(esp32 esp32s2 esp32c3 esp32s3 esp32c2 esp32c6 esp32h2)
+    ./install.sh esp32,esp32s2,esp32c3,esp32s3,esp32c2,esp32c6,esp32h2 >/dev/null
   fi
 
   . ./export.sh >/dev/null
@@ -86,7 +92,7 @@ for sdk in 4.4.7 5.0.6; do
       cp $file "$IDF_LIBS_PATH/$TARGETDIR/"
     done
 
-    if [ "$target" = "esp32c3" -o "$target" = "esp32c6" ]; then
+    if [ "$target" = "esp32c3" -o "$target" = "esp32c2" -o "$target" = "esp32c6" ]; then
       cd $IDF_TOOLS_PATH/tools/riscv32-esp-elf/*/*/lib/gcc/riscv32-esp-elf/*/$subarch*
       for pattern in '*.a' '*.o' ; do
         find . -type f -name "$pattern" | while read file ; do
