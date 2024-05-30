@@ -52,6 +52,7 @@ for arch in aarch64-darwin x86_64-darwin x86_64-linux i686-linux ; do
 done
 
 for sdk in 4.4.7 5.0.6 5.2.1 ; do
+#for sdk in 5.2.1 ; do
   cd "$BUILDDIR" 
   rm -rf "$BUILDDIR/esp-idf" 2>/dev/null
   git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " >/dev/null
@@ -79,12 +80,12 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
   . ./export.sh >/dev/null
   
   for target in $TARGETS ; do
-    TARGETDIR="libs/lx6/$target"
-    echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="libs/lx7/$target"
-    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="libs/lx7/$target"
-    echo "$target" | grep "esp32c2" >/dev/null && TARGETDIR="libs/rv32imc/$target" && subarch="rv32imc"
-    echo "$target" | grep "esp32c3" >/dev/null && TARGETDIR="libs/rv32imc/$target" && subarch="rv32imc"
-    echo "$target" | grep "esp32c6" >/dev/null && TARGETDIR="libs/rv32imac/$target" && subarch="rv32imac"
+    TARGETDIR="lib/lx6/$target"
+    echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="lib/lx7/$target"
+    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="lib/lx7/$target"
+    echo "$target" | grep "esp32c2" >/dev/null && TARGETDIR="lib/rv32imc/$target" && subarch="rv32imc"
+    echo "$target" | grep "esp32c3" >/dev/null && TARGETDIR="lib/rv32imc/$target" && subarch="rv32imc"
+    echo "$target" | grep "esp32c6" >/dev/null && TARGETDIR="lib/rv32imac/$target" && subarch="rv32imac"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug"
 
@@ -293,6 +294,10 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
       mv tmp/*/bin/*objcopy bin/
       rm -rf tmp 
 
+      if [ $sdk = 5.2.1 ]; then
+        cp $IDF_TOOLS_PATH/tools/xtensa-esp-elf/*/xtensa-esp-elf/lib/*.so "$BINTARGETDIR/lib"
+      fi
+
       mkdir -p $BINTARGETDIR/tools/ 
       cp -r $BUILDDIR/esp-idf/tools $BINTARGETDIR/
 
@@ -314,5 +319,5 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
 done
 
 rm -rf $BUILDDIR/esp-idf 2>/dev/null
-rm -rf $BUILDDIR/tools-* 2>/dev/null
+#rm -rf $BUILDDIR/tools-* 2>/dev/null
 
