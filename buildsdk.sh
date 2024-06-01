@@ -145,6 +145,8 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
 
     [ -f "$BUILDDIR/sdkconfig-idf$sdk-$target.release" ] && cp "$BUILDDIR/sdkconfig-idf$sdk-$target.release" sdkconfig
     idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " >/dev/null
+    cp build/*.map $IDF_LIBS_PATH/$TARGETDIR/build.map
+    cp ./build/CMakeFiles/hello_world.elf.dir/link.txt  $IDF_LIBS_PATH/$TARGETDIR/
 
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release/"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug/"
