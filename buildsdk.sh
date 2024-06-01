@@ -51,8 +51,11 @@ for arch in aarch64-darwin x86_64-darwin x86_64-linux i686-linux ; do
   rm -rf "$BUILDDIR/$arch" >/dev/null 2>&1
 done
 
-for sdk in 4.4.7 5.0.6 5.2.1 ; do
-#for sdk in 5.2.1 ; do
+rm -f $BUILDDIR/MUSTEXIT 2>/dev/null
+
+for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
+[ -f $BUILDDIR/MUSTEXIT ] && exit 1
+(
   cd "$BUILDDIR" 
   rm -rf "$BUILDDIR/esp-idf" 2>/dev/null
   git clone -b "v$sdk" --recursive https://github.com/espressif/esp-idf.git 2>&1 | pv --line-mode --size=85 --name "clone esp-idf $sdk " >/dev/null
@@ -64,6 +67,10 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
   mkdir -p "$IDF_TOOLS_PATH"
   mkdir -p "$IDF_LIBS_PATH"
   export "IDF_TOOLS_PATH"
+  if [ $sdk = 4.3.7 ]; then
+    TARGETS=(esp32)
+    ./install.sh esp32 >/dev/null
+  fi
   if [ $sdk = 4.4.7 ]; then
     TARGETS=(esp32 esp32s2 esp32c3 esp32s3)
     ./install.sh esp32,esp32s2,esp32c3,esp32s3 >/dev/null
@@ -145,8 +152,13 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
 
     [ -f "$BUILDDIR/sdkconfig-idf$sdk-$target.release" ] && cp "$BUILDDIR/sdkconfig-idf$sdk-$target.release" sdkconfig
     idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " >/dev/null
-    cp build/*.map $IDF_LIBS_PATH/$TARGETDIR/build.map
-    cp ./build/CMakeFiles/hello_world.elf.dir/link.txt  $IDF_LIBS_PATH/$TARGETDIR/
+    if [ ! -f build/hello?world.elf ];then
+      echo "Build failed"
+      touch $BUILDDIR/MUSTEXIT
+      exit 1
+    fi
+    cp build/*.map $IDF_LIBS_PATH/$TARGETDIR/build.map 2>/dev/null
+    cp ./build/CMakeFiles/hello_world.elf.dir/link.txt  $IDF_LIBS_PATH/$TARGETDIR/ 2>/dev/null
 
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release/"
     mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug/"
@@ -158,14 +170,21 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
 
     [ -f "$BUILDDIR/sdkconfig-idf$sdk-$target.debug" ] && cp "$BUILDDIR/sdkconfig-idf$sdk-$target.release" sdkconfig
     idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " >/dev/null
+    if [ ! -f build/hello?world.elf ];then
+      echo "Build failed"
+      touch $BUILDDIR/MUSTEXIT
+      exit 1
+    fi
 
     find . -path ./build/esp-idf -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/debug/" \;
     find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/debug/" \;
 
     cp ./build/bootloader/bootloader.bin  "$IDF_LIBS_PATH/$TARGETDIR"
     cp ./build/partition_table/partition-table.bin "$IDF_LIBS_PATH/$TARGETDIR"
-    cp ./build/esp-idf/esp_system/ld/memory.ld    "$IDF_LIBS_PATH/$TARGETDIR"
-    cp ./build/esp-idf/esp_system/ld/sections.ld  "$IDF_LIBS_PATH/$TARGETDIR"
+    cp ./build/esp-idf/esp_system/ld/memory.ld    "$IDF_LIBS_PATH/$TARGETDIR" 2>/dev/null
+    cp ./build/esp-idf/esp_system/ld/sections.ld  "$IDF_LIBS_PATH/$TARGETDIR" 2>/dev/null
+    cp ./build/esp-idf/esp32/esp32_out.ld    "$IDF_LIBS_PATH/$TARGETDIR" 2>/dev/null
+    cp ./build/esp-idf/esp32/ld/esp32.project.ld  "$IDF_LIBS_PATH/$TARGETDIR" 2>/dev/null
 
     # Generate OTA partition files
     echo Generating partitions_two_ota 
@@ -185,21 +204,21 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
   
   cd "$BUILDDIR/esp-idf/tools"
   if [ $sdk = 5.2.1 ]; then
-    #python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform macos-arm64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-    #python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform macos       xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-    #python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform linux-amd64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
-    #python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform linux-i686  xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform macos-arm64 xtensa-esp-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform macos       xtensa-esp-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform linux-amd64 xtensa-esp-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform linux-i686  xtensa-esp-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+  elif [ $sdk = 4.3.7 ]; then
+    python3 idf_tools.py download --targets esp32 --platform macos       xtensa-esp32-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+    python3 idf_tools.py download --targets esp32 --platform linux-amd64 xtensa-esp32-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
+    python3 idf_tools.py download --targets esp32 --platform linux-i686  xtensa-esp32-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
   else
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3 --platform macos-arm64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3 --platform macos       xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3 --platform linux-amd64 xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3 --platform linux-i686  xtensa-esp32-elf xtensa-esp32s2-elf xtensa-esp32s3-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
   fi
-  rm $IDF_TOOLS_PATH/dist/*-gdb-* >/dev/null 2>&1
+  rm $IDF_TOOLS_PATH/dist/*-gdb-* >/dev/null 2>/dev/null
   for target arch arch2 in \
       esp     aarch64-darwin aarch64-apple-darwin \
       esp     x86_64-darwin  x86_64-apple-darwin \
@@ -255,6 +274,15 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
       for file in CMakeLists.txt Kconfig LICENSE README.md sdkconfig.rename ; do
         cp "$BUILDDIR/esp-idf/$file" "$BINTARGETDIR/"
       done
+      if [ $sdk = 4.3.7 ]; then 
+        if [ "$arch" =  "x86_64-darwin" ]; then
+          cp -r $BINTARGETDIR/bin $BUILDDIR/aarch64-darwin/esp-idf-$sdk/
+          cp -r $BINTARGETDIR/components $BUILDDIR/aarch64-darwin/esp-idf-$sdk/
+          for file in CMakeLists.txt Kconfig LICENSE README.md sdkconfig.rename ; do
+            cp "$BUILDDIR/esp-idf/$file" "$BUILDDIR/aarch64-darwin/esp-idf-$sdk/" 2>/dev/null
+          done
+        fi
+      fi
     fi
   done
 
@@ -318,8 +346,9 @@ for sdk in 4.4.7 5.0.6 5.2.1 ; do
       done
     fi
   done
+)
 done
 
 rm -rf $BUILDDIR/esp-idf 2>/dev/null
-#rm -rf $BUILDDIR/tools-* 2>/dev/null
+rm -rf $BUILDDIR/tools-* 2>/dev/null
 
