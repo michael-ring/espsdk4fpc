@@ -89,7 +89,7 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
   for target in $TARGETS ; do
     TARGETDIR="lib/lx6/$target"
     echo "$target" | grep "esp32s2" >/dev/null && TARGETDIR="lib/lx7/$target"
-    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="lib/lx7/$target"
+    echo "$target" | grep "esp32s3" >/dev/null && TARGETDIR="lib/lx7hf/$target"
     echo "$target" | grep "esp32c2" >/dev/null && TARGETDIR="lib/rv32imc/$target" && subarch="rv32imc"
     echo "$target" | grep "esp32c3" >/dev/null && TARGETDIR="lib/rv32imc/$target" && subarch="rv32imc"
     echo "$target" | grep "esp32c6" >/dev/null && TARGETDIR="lib/rv32imac/$target" && subarch="rv32imac"
