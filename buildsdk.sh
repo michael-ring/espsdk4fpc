@@ -53,7 +53,7 @@ done
 
 rm -f $BUILDDIR/MUSTEXIT 2>/dev/null
 
-for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
+for sdk in 4.3.7 4.4.7 5.0.6 5.2.2 ; do
 [ -f $BUILDDIR/MUSTEXIT ] && exit 1
 (
   cd "$BUILDDIR" 
@@ -79,7 +79,7 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
     TARGETS=(esp32 esp32s2 esp32c3 esp32s3 esp32c2)
     ./install.sh esp32,esp32s2,esp32c3,esp32s3,esp32c2 >/dev/null
   fi
-  if [ $sdk = 5.2.1 ]; then
+  if [ $sdk = 5.2.2 ]; then
     TARGETS=(esp32 esp32s2 esp32s3 esp32c2 esp32c3 esp32c6)
     ./install.sh esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 >/dev/null
   fi
@@ -120,7 +120,7 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
         done
       done
     else
-      if [ $sdk = 5.2.1 ]; then
+      if [ $sdk = 5.2.2 ]; then
         cd $IDF_TOOLS_PATH/tools/xtensa-esp-elf/*/*/lib/gcc/*/*/$target
       else
         cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/lib/gcc/*/*/
@@ -132,7 +132,7 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
         done
       done
 
-      if [ $sdk = 5.2.1 ]; then
+      if [ $sdk = 5.2.2 ]; then
         cd $IDF_TOOLS_PATH/tools/xtensa-esp-elf/*/*/*/lib/$target
       else
         cd $IDF_TOOLS_PATH/tools/*$target-elf/*/*/*/lib/
@@ -203,7 +203,7 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
   done
   
   cd "$BUILDDIR/esp-idf/tools"
-  if [ $sdk = 5.2.1 ]; then
+  if [ $sdk = 5.2.2 ]; then
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform macos-arm64 xtensa-esp-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform macos       xtensa-esp-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
     python3 idf_tools.py download --targets esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 --platform linux-amd64 xtensa-esp-elf riscv32-esp-elf #| pv --line-mode --size=10 --name "download binutils for esp-idf $sdk " >/dev/null
@@ -239,7 +239,7 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
   do
     BINTARGETDIR="$BUILDDIR/$arch/esp-idf-$sdk"
 
-    if [ $sdk = 5.2.1 ]; then
+    if [ $sdk = 5.2.2 ]; then
       SOURCE="$(ls $IDF_TOOLS_PATH/dist/xtensa-esp-elf-*-$arch2.tar.?z)" >/dev/null 2>&1
     else
       SOURCE="$(ls $IDF_TOOLS_PATH/dist/xtensa-$target-elf-gcc*-$arch2.tar.?z)"  >/dev/null 2>&1
@@ -305,7 +305,7 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
       esp32c6 i686-linux     linux-i686
   do
     BINTARGETDIR="$BUILDDIR/$arch/esp-idf-$sdk"
-    if [ $sdk = 5.2.1 ]; then
+    if [ $sdk = 5.2.2 ]; then
       SOURCE="$(ls $IDF_TOOLS_PATH/dist/riscv32-esp-elf-*-$arch2.tar.?z )"  >/dev/null 2>&1
     else
       SOURCE="$(ls $IDF_TOOLS_PATH/dist/riscv32-esp-elf-gcc*-$arch2.tar.?z )"  >/dev/null 2>&1
@@ -324,7 +324,7 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.1 ; do
       mv tmp/*/bin/*objcopy bin/
       rm -rf tmp 
 
-      if [ $sdk = 5.2.1 ]; then
+      if [ $sdk = 5.2.2 ]; then
         cp $IDF_TOOLS_PATH/tools/xtensa-esp-elf/*/xtensa-esp-elf/lib/*.so "$BINTARGETDIR/lib"
       fi
 
