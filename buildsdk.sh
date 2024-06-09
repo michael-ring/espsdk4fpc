@@ -148,27 +148,40 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.2 ; do
     cd "$BUILDDIR/esp-idf/examples/get-started/hello_world"
     rm -rf build 2>/dev/null
     rm sdkconfig 2>/dev/null
-    idf.py set-target $target >/dev/null
+    rm sdkconfig.defaults 2>/dev/null
+    mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release/"
 
-    [ -f "$BUILDDIR/sdkconfig-idf$sdk-$target.release" ] && cp "$BUILDDIR/sdkconfig-idf$sdk-$target.release" sdkconfig
+    [ -f "$BUILDDIR/sdkconfig.defaults.$target.release" ] && cp "$BUILDDIR/sdkconfig.defaults.$target.release" sdkconfig.defaults
+    idf.py set-target $target >/dev/null
     idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " >/dev/null
     if [ ! -f build/hello?world.elf ];then
       echo "Build failed"
       touch $BUILDDIR/MUSTEXIT
       exit 1
     fi
-    cp build/*.map $IDF_LIBS_PATH/$TARGETDIR/build.map 2>/dev/null
-    cp ./build/CMakeFiles/hello_world.elf.dir/link.txt  $IDF_LIBS_PATH/$TARGETDIR/ 2>/dev/null
 
-    mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/release/"
-    mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug/"
+    cp build/sdkconfig $IDF_LIBS_PATH/$TARGETDIR/release/sdkconfig 2>/dev/null
+    cp build/config/sdkconfig.h $IDF_LIBS_PATH/$TARGETDIR/release/sdkconfig.h 2>/dev/null
+    cp build/*.map $IDF_LIBS_PATH/$TARGETDIR/release/build.map 2>/dev/null
+    cp ./build/CMakeFiles/hello_world.elf.dir/link.txt  $IDF_LIBS_PATH/$TARGETDIR/release/ 2>/dev/null
 
     find . -path ./build/esp-idf -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/release/" \;
     find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/release/" \;
 
-    [ ! -f "$BUILDDIR/sdkconfig-idf$sdk-$target.release" ] && cp sdkconfig "$BUILDDIR/sdkconfig-idf$sdk-$target.release"
+    cp ./build/partition_table/partition-table.bin "$IDF_LIBS_PATH/$TARGETDIR"
 
-    [ -f "$BUILDDIR/sdkconfig-idf$sdk-$target.debug" ] && cp "$BUILDDIR/sdkconfig-idf$sdk-$target.release" sdkconfig
+    cp ./build/bootloader/bootloader.bin  "$IDF_LIBS_PATH/$TARGETDIR/release"
+    cp ./build/esp-idf/esp_system/ld/memory.ld    "$IDF_LIBS_PATH/$TARGETDIR/release" 2>/dev/null
+    cp ./build/esp-idf/esp_system/ld/sections.ld  "$IDF_LIBS_PATH/$TARGETDIR/release" 2>/dev/null
+    cp ./build/esp-idf/$target/"$target"_out.ld    "$IDF_LIBS_PATH/$TARGETDIR/release" 2>/dev/null
+    cp ./build/esp-idf/$target/ld/"$target".project.ld  "$IDF_LIBS_PATH/$TARGETDIR/release" 2>/dev/null
+
+    rm sdkconfig 2>/dev/null
+    rm sdkconfig.defaults 2>/dev/null
+    mkdir -p "$IDF_LIBS_PATH/$TARGETDIR/debug/"
+
+    [ -f "$BUILDDIR/sdkconfig.defaults.$target.debug" ] && cp "$BUILDDIR/sdkconfig.defaults.$target.debug" sdkconfig.defaults
+    idf.py set-target $target >/dev/null
     idf.py build | pv --line-mode --size=1200 --name "build  $target for esp-idf $sdk " >/dev/null
     if [ ! -f build/hello?world.elf ];then
       echo "Build failed"
@@ -179,12 +192,15 @@ for sdk in 4.3.7 4.4.7 5.0.6 5.2.2 ; do
     find . -path ./build/esp-idf -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/debug/" \;
     find . -path ./build/bootloader -prune -o -name "*.a" -exec cp {} "$IDF_LIBS_PATH/$TARGETDIR/debug/" \;
 
-    cp ./build/bootloader/bootloader.bin  "$IDF_LIBS_PATH/$TARGETDIR"
-    cp ./build/partition_table/partition-table.bin "$IDF_LIBS_PATH/$TARGETDIR"
-    cp ./build/esp-idf/esp_system/ld/memory.ld    "$IDF_LIBS_PATH/$TARGETDIR" 2>/dev/null
-    cp ./build/esp-idf/esp_system/ld/sections.ld  "$IDF_LIBS_PATH/$TARGETDIR" 2>/dev/null
-    cp ./build/esp-idf/esp32/esp32_out.ld    "$IDF_LIBS_PATH/$TARGETDIR" 2>/dev/null
-    cp ./build/esp-idf/esp32/ld/esp32.project.ld  "$IDF_LIBS_PATH/$TARGETDIR" 2>/dev/null
+    cp build/sdkconfig $IDF_LIBS_PATH/$TARGETDIR/debug/sdkconfig 2>/dev/null
+    cp build/config/sdkconfig.h $IDF_LIBS_PATH/$TARGETDIR/debug/sdkconfig.h 2>/dev/null
+    cp build/*.map $IDF_LIBS_PATH/$TARGETDIR/release/build.map 2>/dev/null
+
+    cp ./build/bootloader/bootloader.bin  "$IDF_LIBS_PATH/$TARGETDIR/debug"
+    cp ./build/esp-idf/esp_system/ld/memory.ld    "$IDF_LIBS_PATH/$TARGETDIR/debug" 2>/dev/null
+    cp ./build/esp-idf/esp_system/ld/sections.ld  "$IDF_LIBS_PATH/$TARGETDIR/debug" 2>/dev/null
+    cp ./build/esp-idf/$target/"$target"_out.ld    "$IDF_LIBS_PATH/$TARGETDIR/debug" 2>/dev/null
+    cp ./build/esp-idf/$target/ld/"$target".project.ld  "$IDF_LIBS_PATH/$TARGETDIR/debug" 2>/dev/null
 
     # Generate OTA partition files
     echo Generating partitions_two_ota 
