@@ -54,7 +54,6 @@ done
 rm -f $BUILDDIR/MUSTEXIT 2>/dev/null
 
 for sdk in 4.3.7 4.4.7 5.0.6 5.2.2 ; do
-for sdk in 4.3.7 5.2.2 ; do
 [ -f $BUILDDIR/MUSTEXIT ] && exit 1
 (
   cd "$BUILDDIR" 
@@ -81,10 +80,8 @@ for sdk in 4.3.7 5.2.2 ; do
     ./install.sh esp32,esp32s2,esp32c3,esp32s3,esp32c2 >/dev/null
   fi
   if [ $sdk = 5.2.2 ]; then
-#    TARGETS=(esp32 esp32s2 esp32s3 esp32c2 esp32c3 esp32c6)
-#    ./install.sh esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 >/dev/null
-    TARGETS=(esp32  esp32c3 )
-    ./install.sh esp32,esp32c3 >/dev/null
+    TARGETS=(esp32 esp32s2 esp32s3 esp32c2 esp32c3 esp32c6)
+    ./install.sh esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6 >/dev/null
   fi
 
   . ./export.sh >/dev/null
